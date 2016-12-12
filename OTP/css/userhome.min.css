@@ -1,0 +1,107 @@
+/* set parent height fit screen*/
+
+.fit-screen {
+	height: 100%;
+}
+
+
+/*parent container of main text*/
+
+.main-content-wrapper {
+	margin-left: 230px;
+	height: 100%;
+	padding-top: 100px;
+}
+
+@media (max-width:768px) {
+	.main-content-wrapper {
+		margin-left: 0;
+	}
+	.main-header h3 {
+		display: none;
+	}
+	
+}
+
+
+/*head bar*/
+
+.header-title-width {
+	text-align: center;
+	width: 80%;
+}
+
+.header-form-width {
+	text-align: right;
+	width: 100%;
+}
+
+.header-button-width {
+	margin-right:20px ;
+}
+
+.main-header {
+	position: absolute;
+	width: 100%;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.main-header h3 {
+	color: white;
+	font-size: 35px;
+	white-space: nowrap;
+	vertical-align: baseline;
+	padding: 0;
+}
+
+
+/*sidebar*/
+
+.main-sidebar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding-top: 90px;
+	height: 100%;
+	width: 230px;
+	-webkit-transition: -webkit-transform .1s ease-in-out, width .1s ease-in-out;
+	-moz-transition: -moz-transform .1s ease-in-out, width .1s ease-in-out;
+	-o-transition: -o-transform .1s ease-in-out, width .1s ease-in-out;
+	transition: transform .1s ease-in-out, width .1s ease-in-out
+}
+
+.main-sidebar h3 {
+	color: white;
+	text-align: center;
+}
+
+@media (max-width:768px) {
+	.main-sidebar {
+		-webkit-transform: translate(-230px, 0);
+		-ms-transform: translate(-230px, 0);
+		-o-transform: translate(-230px, 0);
+		transform: translate(-230px, 0)
+	}
+}
+
+@media (max-width:768px) {
+	.main-header button {
+		display: none;
+	}
+	.main-header form {
+		display: none;
+	}
+	
+}
+@media (max-width:900px) {
+	.main-header button {
+		display: none;
+	}
+
+	
+}
+
+.sidebar-menu {
+	padding: 0;
+}

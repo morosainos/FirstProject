@@ -1,0 +1,115 @@
+/*
+ * sidebar's style
+ */
+
+.header-logo{
+	margin-top:-32px ; margin-left: 10px;
+}
+
+.skin-blue .main-sidebar,
+.skin-blue .left-side {
+	background-color: silver;
+	height: 100%;
+}
+
+.skin-blue .sidebar-menu {
+	width: 100%;
+	text-align: center;
+} 
+
+.skin-blue .sidebar-menu div {
+	display: inline-block;
+	width: 90%;
+	margin-left: 10px;
+	margin-right: 10px;
+	color: white;
+	border-radius: 4px 4px 4px 4px;
+	background-color: #337ab7;
+	padding: .2em .6em .3em;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+.skin-blue .sidebar-menu li a {
+	margin-left: 10px;
+	margin-right: 10px;
+	font-weight: bold;
+}
+
+.skin-blue .sidebar-menu li a:hover {
+	background-color: silver;
+}
+
+.skin-blue .sidebar-menu li a:active,
+.skin-blue .sidebar-menu li a:focus {
+	background-color: orange;
+}
+
+.nav .btn-primary {
+	margin-top: 10px;
+	width: 90%;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.nav .input-group-btn .btn-primary {
+	margin-top: 0px;
+}
+
+
+/*
+ * main header's style
+ */
+
+.header-button-width .btn-danger {
+	margin-right: 30px;
+	margin-top:-5px ;
+}
+
+.skin-blue .main-header .navbar {
+	background-color: #005588;
+	height: 90px;
+	line-height: 90px;
+}
+
+.skin-blue .main-header-form {
+	border-radius: 3px;
+	margin: 10px 10px;
+	text-align: center;
+	height: 35px;
+	line-height: 35px;
+}
+
+.skin-blue .main-header-form input[type="text"] {
+	background-color: #122B40;
+	border: 1px solid transparent;
+	color: white;
+	font-weight: normal;
+}
+
+.skin-blue .main-header-form .btn {
+	background-color: #122B40;
+	border: 1px solid transparent;
+	color: white;
+	font-weight: bold;
+}
+
+.skin-blue .main-header-form input[type="text"]:focus,
+.skin-blue .main-header-form input[type="text"]:focus,
+.input-group-btn .btn {
+	background-color: #fff;
+	color: black;
+	font: normal;
+}
+
+
+/*
+ * content's style
+ */
+
+.main-content-wrapper {
+	background-color: white;
+}
