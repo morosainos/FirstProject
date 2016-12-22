@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="otpApp" class="fit-screen">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Multiple Choices</title>
+		<link rel="stylesheet" href="../../../global/plugins/bootstrap-3.3.7/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="../../../global/plugins/simditor/simditor/styles/simditor.css" />
+		<link rel="stylesheet" href="../../../global/plugins/simditor/simditor-html/styles/simditor-html.css" />
+		<link href="../multiple-choice-template/mutiple-module.css" rel="stylesheet" />
+		<link href="multiple.css" rel="stylesheet" />
+	</head>
+	<!--
+        Author:Celery  celery.mingyu.qin@kingland.com
+        Date:2016-12-12
+        Description:Testing page for using multiple choices template
+    -->
+
+	<body class="fit-screen" ng-controller="app-controller">
+		<div class="container-fluid title">
+			<div class="row">
+				<div class="col-md-3">
+					<!-- Logo -->
+					<img ng-src="../../../global/img/kingland-logo-bar.png" class="img" />
+				</div>
+				<!-- Title -->
+				<div class="col-md-7 text-center">
+					<h1>Kingland Online Test System</h1>
+				</div>
+				<!-- Timer -->
+				<div class="col-md-2 timer">
+					<h4>Time:<span ng-bind="time"></span></h4>
+				</div>
+			</div>
+		</div>
+
+		<div class="container-fluid content-main">
+			<div class="row">
+				<div class="col-md-2"></div>
+				<div class="col-md-9 content">
+					<input type="text" ng-model="title" placeholder="Enter a color" />
+					<!-- title -->
+					<h1 class="text-info text-center">I、IQ Test</h1>
+					<!-- content -->
+					<div class="content-frame">
+						<div>
+							(共<span ng-bind="totalEpicQuestion"></span>题，每题<span ng-bind="point"></span>分)
+						</div> 
+ 
+						<!-- Start multiple template -->
+						<multiple-template ongreet="sayHello(message, name)" show="showName(name)" get-title="title" get-content="contents"></multiple-template>
+						<!-- End multiple template -->
+						<span> 
+							<span class="questionHint"><span ng-bind="currentQuestion"></span> of <span ng-bind="totalQuestion"></span></span>
+						<button class="btn btn-warning btn-lg">Next</button>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<script src="../../../global/plugins/jquery-3.1.1.js"></script>
+			<script src="../../../global/plugins/angular-1.5.8/angular.min.js"></script>
+			<script src="../../../global/plugins/simditor/simple-module/lib/module.js"></script>
+			<script src="../../../global/plugins/simditor/simple-hotkeys/lib/hotkeys.js"></script>
+			<script src="../../../global/plugins/simditor/simple-uploader/lib/uploader.js"></script>
+			<script src="../../../global/plugins/simditor/simditor/lib/simditor.js"></script>
+			<script src="../../../global/plugins/js-beautify/js/lib/beautify.js"></script>
+			<script src="../../../global/plugins/js-beautify/js/lib/beautify-css.js"></script>
+			<script src="../../../global/plugins/js-beautify/js/lib/beautify-html.js"></script>
+			<script src="../../../global/plugins/simditor/simditor-html/lib/simditor-html.js"></script>
+			<script src="../../../global/plugins/simditor/angular-simditor.js"></script>
+			<script src="../../../global/plugins/angular-sanitize.js"></script>
+			<script src="../../../global/script/constants.js"></script>
+			<script src="../multiple-choice-template/multiple-module.js"></script>
+			<script src="multiple.js"></script>
+	</body>
+
+</html>
