@@ -1,0 +1,39 @@
+<!--
+	Author:Celery  celery.mingyu.qin@kingland.com
+	Date:2016-12-21
+	Description:Multiple choices template
+-->
+<button class="btn btn-warning" ng-click="click()">click</button>
+<div class="container-fluid">
+	<div class="row">
+		<div class="question col-md-12">
+			<ng-simditor content="question" editable="isEditable"></ng-simditor>
+			<span ng-show='!isEditable' ng-bind-html-unsafe="question"></span>
+		</div>
+	</div>
+
+		<div ng-repeat="domain in info">
+			<div class="answer row">
+				<div class="col-md-1">
+					<input ng-model="checkChoice1" class="check" type="checkbox"></input>
+				</div>
+				<div class="col-md-10">
+					<ng-simditor content="domain.value" editable="isEditable"></ng-simditor>
+					<span ng-show='isEditable' ng-bind-html-unsafe="domain.value"></span>
+				</div>
+				<div class="col-md-1" ng-show='isEditable'>
+					<a href="" ng-click="delete($index)"><span class="glyphicon glyphicon-minus-sign"></span></a>
+				</div>
+			</div>
+		</div>
+
+	<div class="foot row">
+		<div class="col-md-1" ng-show='isEditable'>
+			<a href="" ng-click="add()"><span class="glyphicon glyphicon-plus-sign"></span></a>
+		</div>
+		<div class="col-md-10" ng-show='isEditable'></div>
+		<div class="col-md-1" ng-show='isEditable'>
+			<button ng-click="save()" class="btn btn-default btn-lg">Save</button>
+		</div>
+	</div>
+</div>
