@@ -37,6 +37,5 @@ $http.get(url,{params:{"name": "zhangsan", "age": "18"}}).success(function(data)
 
     });
 
-https://my.oschina.net/buwei/blog/191640
-
-http://www.myexception.cn/operating-system/2048416.html
+http://www.html-js.com/article/Front-end-source-code-analysis-original-uirouter-source-code-analysis
+http://www.myexception.cn/javascript/2035214.html
