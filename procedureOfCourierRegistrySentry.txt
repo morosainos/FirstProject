@@ -1,0 +1,81 @@
+1.Insert data in stage table
+
+Insert into KSCStageOrg(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,ENTITY_REL_INDICATOR,
+LAST_UPDATE_DT) -- DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,
+Values(100888,1002,Current_Timestamp,100888,1012,100888,100888,1000,1000,1000,1000,1001,'100888TEST',1001,1001,1000,1001,'C1',1029,1104,1001,
+Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (100888,'100888',1008,100888,current_timestamp);
+
+
+2.run courier to prepare data in stage table to work table 
+
+
+3.get hubId(KINS) [REF_NUM] from IDENTIFIER table
+
+---HUBID for ORG
+SELECT IDENTIFIER.CONT_ID, IDENTIFIER.REF_NUM, CONTEQUIV.ADMIN_CLIENT_ID
+FROM 
+IDENTIFIER AS IDENTIFIER JOIN CONTEQUIV AS CONTEQUIV ON IDENTIFIER.CONT_ID = CONTEQUIV.CONT_ID
+WHERE IDENTIFIER.ID_TP_CD = 1000
+AND CONTEQUIV.ADMIN_CLIENT_ID = 1001001; 
+
+
+ CONT_ID            REF_NUM ADMIN_CLIENT_ID
+ ------------------ ------- ---------------
+ 117348393272958173 18111   10888
+
+
+4.write a row in Registry.txt
+
+cosumername|requestId|hubId|productType|RefreshTime|SubscritionStatus|.....
+RSSD|18170380221|18111|OAC||DAILY|SUB|||||18170380221 B||||||||||||||||||||||
+
+
+5.run RunRegistry to get data ready to subscribe (args can be org|sec) sixth param is num of thread
+
+Check subscription status
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE            IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- --------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002     1000(should be 1000)                   1000                     NULL                      1001                1 NULL                                0 NULL                                NULL              NULL B               30fd2a5704c68cb1de138423da7c7e7fbf7dca10c21edf717fc42ed58db23190 NULL      NULL              117348393272958173 2017-01-09 11:33:30.434 385448393281043545 registry
+ 
+6.run RunSentry to subscribe consumer's wanting data.
+
+Check subscription status
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002     1001(should be 1000)                   1000                     NULL                      1001                1 2017-01-09 12:27:09.778               0 2017-01-09                          NULL              NULL N               2de5b7f99d32cac7a309c74e6e4d7c0a06af8940eb588f8f36cfa43a83078baf NULL      NULL              117348393272958173 2017-01-09 12:27:00.118 555348393602375033 sentry
+
+SELECT * FROM KSCCONSUMPTIONORG;
+ ID                 WORK_PARTY_ID      CONSUMER_ID KINS  LAST_UPDATE_DATE        PRODUCT_TYPE_TP_CD RESOLUTION_TP_CD ENTITY_ACTIVE_IND ORG_TYPE BUSINESS_STATUS_TYPE IS_PUBLICLY_TRADED_TYPE IS_SEC_REGISTRANT_TYPE IS_BRANCH_TYPE FISCAL_YEAR_END ESTABLISHED_DATE EMPLOYEE_COUNT_GLOBAL EMPLOYEE_COUNT_LOCAL LEGAL_STRUCTURE_TYPE DELTA_KEY                                                        BUSINESS_STATUS_DATE ENTITY_REL_INDICATOR_TYPE UNIQUE_CONSTRAINT                                                RECORD_GUP_ID      LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ------------------ ----------- ----- ----------------------- ------------------ ---------------- ----------------- -------- -------------------- ----------------------- ---------------------- -------------- --------------- ---------------- --------------------- -------------------- -------------------- ---------------------------------------------------------------- -------------------- ------------------------- ---------------------------------------------------------------- ------------------ ----------------------- ------------------ ----------------
+ 651848393286481831 117348393272958173       10000 18111 2017-01-09 11:34:24.807               1002             NULL              NULL 1.100.00 ACTIVE               NULL                    NULL                   NO                        NULL NULL                              NULL                 NULL NULL                 2e95d2e9cc82359eb346b7299588b9b0fe079f6e9366e1f70394fc6c11cc3ff4 NULL                 NULL                      359f5ac36e7ecae6913ac1393c2e57fcde0efed900517cf6648399f65cb68027 117348393272958173 2017-01-09 12:27:00.118 555348393602375033 sentry
+ 
+
+select * from KSCCONSUMPTIONSUBSCRIPTION; 
+ ID                 KINS  CONSUMER_ID RECORDTYPE_TP_CD PRODUCTTYPE_TP_CD PROCESS_TYPE_TP_CD STATUS_TP_CD FREQUENCY_TP_CD REASON_TP_CD IS_SUBSCRIBED_TO START_DATE              ENTITY_ACTIVE_IND CONSUMER_SUBSCRIPTION_ID RESOLUTION_TP_CD WORK_PARTY_ID      UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----- ----------- ---------------- ----------------- ------------------ ------------ --------------- ------------ ---------------- ----------------------- ----------------- ------------------------ ---------------- ------------------ ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+ 767348393286502619 18111       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-09 12:27:09.778              NULL       819848393281054558             NULL 117348393272958173 6fc9e3fdf6df28e877e2e678840acdb8de2ac9ef2dd27b16b2d59dcfa72be603 2017-01-09 12:27:00.118 555348393602375033 sentry
+ 
+
+7. change row in Registry.txt
+
+cosumername|requestId|hubId|productType|RefreshTime|SubscritionStatus|.....
+RSSD|18170380221|18111|OAC||DAILY|UNSUB|||||18170380221 B||||||||||||||||||||||
+
+run RunRegistry 
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002                     1005                   1000                     NULL                      1001                1 2017-01-09 12:27:09.778               0 2017-01-09                          NULL              NULL N               eb65fa21e455f2ee6e8d081b49a212f3654c6b95a759b36cbd46408a1fc44294 NULL      NULL              117348393272958173 2017-01-09 12:52:12.136 298648393753213797 sentry
+ 
+
+
+
+ 
