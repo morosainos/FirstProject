@@ -1,0 +1,44 @@
+scenario 1:
+
+step 1:
+CIK|18243|18243|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+
+18243 E
+
+step 2:
+CIK|18243|18244|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+
+18243 AU
+18244 E
+
+
+scenario 2:
+step 1:
+CIK|18243|18243|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+CIK|18244|18244|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+
+18243 E
+18244 E
+
+step 2: merge
+merge rule:
+the smallest subscribed kins will win
+
+identifier table
+record id type kins
+1111      1000 18243
+2222      1000 18244
+
+3333      1000 18243
+3333      1083(PKINS)18244
+
+step 3:
+CIK|18243|18243|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+CIK|18244|18244|OAC||DAILY|SUB|||||morli 271119001 up||||||||||||||||||||||
+
+subscription record: the winner will inactive and the loser will change to AU status
+18243 E 
+18244 AU
+
+
+
