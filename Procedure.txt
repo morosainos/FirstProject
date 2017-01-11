@@ -1,0 +1,460 @@
+﻿Procedure of HUB 
+
+----------------------------------------------------
+一、 Courier-Registry-Sentry stage-work-consumption流程
+
+1.向stage表中插入一条数据  IS_CHANGED=1002的数据 Courier才会执行 执行过为1000
+
+Insert into KSCSTAGEORG(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,
+SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,
+ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,
+ENTITY_REL_INDICATOR,LAST_UPDATE_DT) -- DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,
+Values(100888,1002,Current_Timestamp,100888,1012,100888,100888,1000,1000,1000,1000,1001,'100888TEST',1001,
+1001,1000,1001,'C1',1029,1104,1001,Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (100888,'100888',1008,100888,current_timestamp);
+
+2.Run courier 将stage表中符合条件的数据插入到work表
+
+3.从IDENTIFIER表中查找  HUBID(KINS)[REF_NUM]    CONT_ID(RECORD_ID)
+
+---HUBID for ORG  IDENTIFIER.ID_TP_CD=1000 的记录代表HUBID
+SELECT IDENTIFIER.CONT_ID, IDENTIFIER.REF_NUM, CONTEQUIV.ADMIN_CLIENT_ID
+FROM IDENTIFIER AS IDENTIFIER JOIN CONTEQUIV AS CONTEQUIV ON IDENTIFIER.CONT_ID = CONTEQUIV.CONT_ID
+WHERE IDENTIFIER.ID_TP_CD = 1000 AND CONTEQUIV.ADMIN_CLIENT_ID = 100888; 
+
+ CONT_ID            REF_NUM ADMIN_CLIENT_ID
+ ------------------ ------- ---------------
+ 117348393272958173 18111   10888
+
+
+4.向Registry.txt中插入一条Request 用户发送要订阅数据（有HUBID或没有）的请求
+
+cosumername|requestId|hubId|productType|RefreshTime|SubscritionStatus|.....
+RSSD|18170380221|18111|OAC||DAILY|SUB|||||18170380221 B||||||||||||||||||||||
+
+
+5.Run RunRegistry 读取用户请求 准备hub data的状态 (args can be org|sec) 第六个参数为线程数 Semaphore
+
+查看hub data的数据状态
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- 
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE            IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- --------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002     1000(should be 1000PENDING)            1000                     NULL                      1001                1 NULL                                0 NULL                                NULL              NULL B               30fd2a5704c68cb1de138423da7c7e7fbf7dca10c21edf717fc42ed58db23190 NULL      NULL              117348393272958173 2017-01-09 11:33:30.434 385448393281043545 registry
+
+ 
+6.Run RunSentry 更新record的状态(SUB/UNSUB等) 进行DABP的判断和处理
+
+查看hub data的数据状态
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002     1001(should be 1000SUB)                1000                     NULL                      1001                1 2017-01-09 12:27:09.778               0 2017-01-09                          NULL              NULL N               2de5b7f99d32cac7a309c74e6e4d7c0a06af8940eb588f8f36cfa43a83078baf NULL      NULL              117348393272958173 2017-01-09 12:27:00.118 555348393602375033 sentry
+
+SELECT * FROM KSCCONSUMPTIONORG;
+ ID                 WORK_PARTY_ID      CONSUMER_ID KINS  LAST_UPDATE_DATE        PRODUCT_TYPE_TP_CD RESOLUTION_TP_CD ENTITY_ACTIVE_IND ORG_TYPE BUSINESS_STATUS_TYPE IS_PUBLICLY_TRADED_TYPE IS_SEC_REGISTRANT_TYPE IS_BRANCH_TYPE FISCAL_YEAR_END ESTABLISHED_DATE EMPLOYEE_COUNT_GLOBAL EMPLOYEE_COUNT_LOCAL LEGAL_STRUCTURE_TYPE DELTA_KEY                                                        BUSINESS_STATUS_DATE ENTITY_REL_INDICATOR_TYPE UNIQUE_CONSTRAINT                                                RECORD_GUP_ID      LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ------------------ ----------- ----- ----------------------- ------------------ ---------------- ----------------- -------- -------------------- ----------------------- ---------------------- -------------- --------------- ---------------- --------------------- -------------------- -------------------- ---------------------------------------------------------------- -------------------- ------------------------- ---------------------------------------------------------------- ------------------ ----------------------- ------------------ ----------------
+ 651848393286481831 117348393272958173       10000 18111 2017-01-09 11:34:24.807               1002             NULL              NULL 1.100.00 ACTIVE               NULL                    NULL                   NO                        NULL NULL                              NULL                 NULL NULL                 2e95d2e9cc82359eb346b7299588b9b0fe079f6e9366e1f70394fc6c11cc3ff4 NULL                 NULL                      359f5ac36e7ecae6913ac1393c2e57fcde0efed900517cf6648399f65cb68027 117348393272958173 2017-01-09 12:27:00.118 555348393602375033 sentry
+
+select * from KSCCONSUMPTIONSUBSCRIPTION; 
+ ID                 KINS  CONSUMER_ID RECORDTYPE_TP_CD PRODUCTTYPE_TP_CD PROCESS_TYPE_TP_CD STATUS_TP_CD FREQUENCY_TP_CD REASON_TP_CD IS_SUBSCRIBED_TO START_DATE              ENTITY_ACTIVE_IND CONSUMER_SUBSCRIPTION_ID RESOLUTION_TP_CD WORK_PARTY_ID      UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----- ----------- ---------------- ----------------- ------------------ ------------ --------------- ------------ ---------------- ----------------------- ----------------- ------------------------ ---------------- ------------------ ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+ 767348393286502619 18111       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-09 12:27:09.778              NULL       819848393281054558             NULL 117348393272958173 6fc9e3fdf6df28e877e2e678840acdb8de2ac9ef2dd27b16b2d59dcfa72be603 2017-01-09 12:27:00.118 555348393602375033 sentry
+ 
+
+7. 更改Registry.txt请求为UNSUB状态
+
+CosumerName|RequestId|HUBID|ProductType|RefreshTime|SubscritionStatus|.....
+RSSD|18170380221|18111|OAC||DAILY|UNSUB|||||18170380221 B||||||||||||||||||||||
+
+Run RunRegistry 
+
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; 
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 819848393281054558       10000 117348393272958173 117348393272958173                1000                 1002              1005(UNSUB)                   1000                     NULL                      1001                1 2017-01-09 12:27:09.778               0 2017-01-09                          NULL              NULL N               eb65fa21e455f2ee6e8d081b49a212f3654c6b95a759b36cbd46408a1fc44294 NULL      NULL              117348393272958173 2017-01-09 12:52:12.136 298648393753213797 sentry
+ 
+-------------------------------------------
+
+-------------------------------------------
+二、 About DABP    Disallowed Business Process
+
+-- Create a business process --
+Insert into KSCBUSINESSPROCESS(ID ,ENTITY_ACTIVE_IND,NAME,DESCRIPTION,LAST_UPDATE_DT)
+Values(476983,1,'Prevent contradicting ultimate parents in consumed data' ,
+'Prevent contradicting ultimate parents in consumed data', Current_Timestamp);
+
+-- Create a business Process Step --
+Insert into KSCBPSTEP(ID,Entity_Active_IND,NAME ,Description,IS_FIRST_STEP,BUSINESS_PROCESS,
+UI_TOOL_TP_CD,GUIDANCE,LAST_UPDATE_DT)
+Values(4769831,1,'Prevent contradicting ultimate parents in consumed data',
+'Prevent contradicting ultimate parents in consumed data',1,476983,1,
+'Prevent contradicting ultimate parents in consumed data',Current_Timestamp);
+
+-- Assign an outcome to business Process Step --
+Insert into KSCBPSTEPOUTCOME(ID ,Entity_Active_IND,NAME,DESCRIPTION,
+Next_Business_Process_Step,Business_Process_Step,LAST_UPDATE_DT)
+Values(4769832,1,'Finish' ,'Finish' ,1000,4769831,Current_Timestamp);
+
+-- Assign Group to Business Process Step --
+Insert into KSCBPSTEPGROUPPROFILEBRIDGE(ID ,ENTITY_ACTIVE_IND,BUSINESS_PROCESS_STEP,
+USER_GROUP_PROFILE,LAST_UPDATE_DT)
+Values(4769833,1,4769831,1,Current_Timestamp );
+
+
+-- Create DABP --
+Insert into KSCDISALLOWEDTASK(ID ,CONSUMER_ID,KSCPRODUCTTYPE_TP_CD,BUSINESS_PROCESS_ID,
+LAST_UPDATE_DT,DABP_TYPE)
+values(4769836,10000,1002,476983,Current_Timestamp,'D');
+
+DABP_TYPE有两种 D Data 表示所有跟data相关的属性进入disallowed business process不会被更新  H Hierarchy 跟Relation相关的属性进入DABP
+
+
+-- Integrity Scans --
+Insert into KSCINTEGRITYSCAN(ID ,Entity_Active_IND,Is_Stored_Procedure_Call,SQLSTMT,
+Result_BUSINESS_PROCESS_STEP,Result_Type_TP_CD, Name,Execution_Frequency,Last_Update_DT)
+Values(4769836,1,0, 'select identifier.CONT_ID  from IDENTIFIER where REF_NUM=''Send to DABP''',
+4769831,1000,'Prevent contradicting ultimate parents in consumed data',1001,Current_Timestamp);
+
+----------------
+第一种情况: 还没有SUB的hub data置为DABP状态
+----------------
+
+1.Stage表插入数据
+Insert into KSCStageOrg(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,
+SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,
+ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,
+ENTITY_REL_INDICATOR,DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,LAST_UPDATE_DT)
+Values(101133,1002,Current_Timestamp,101133,1012,101133,101133,1000,1000,1000,1000,1001,'101133 Entity B',
+1001,1001,1000,1001,'C1',1029,1104,1001,101133,1000,Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (101133,'101133',1008,101133,current_timestamp);
+
+2. 更改Registry.txt Run Courier/Registry
+
+3. IDENTIFIER中存放 CONT_ID(record_id)  属性中ID_TP_CD=1000表示KINS 1083代表PKINS
+
+select * from IDENTIFIER; 
+ IDENTIFIER_ID      ID_STATUS_TP_CD CONT_ID            ID_TP_CD REF_NUM START_DT                END_DT EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER LAST_UPDATE_TX_ID  ASSIGNED_BY IDENTIFIER_DESC ISSUE_LOCATION LAST_USED_DT LAST_VERIFIED_DT SOURCE_IDENT_TP_CD
+ ------------------ --------------- ------------------ -------- ------- ----------------------- ------ --------- ----------------------- ---------------- ------------------ ----------- --------------- -------------- ------------ ---------------- ------------------
+ 531648403823374787            NULL 535248403823299674     1000 18121   2017-01-10 16:50:33.746 NULL   NULL      2017-01-10 16:50:32.816 courier          745448403823299432        NULL NULL            NULL           NULL         NULL                           1000
+ 539348403823321184            NULL 535248403823299674     1008 101133  2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 16:50:32.816 courier          745448403823299432        NULL NULL            NULL           NULL         NULL                           1012
+
+ 
+将数据设为DABP 让ID_TP_CD=1008 的REF_NUM=Send to DABP
+update IDENTIFIER SET REF_NUM = 'Send to DABP' where IDENTIFIER_ID=539348403823321184;
+
+select * from IDENTIFIER;
+
+ IDENTIFIER_ID      ID_STATUS_TP_CD CONT_ID            ID_TP_CD REF_NUM      START_DT                END_DT EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER LAST_UPDATE_TX_ID  ASSIGNED_BY IDENTIFIER_DESC ISSUE_LOCATION LAST_USED_DT LAST_VERIFIED_DT SOURCE_IDENT_TP_CD
+ ------------------ --------------- ------------------ -------- -----------  ----------------------- ------ --------- ----------------------- ---------------- ------------------ ----------- --------------- -------------- ------------ ---------------- ------------------
+ 531648403823374787            NULL 535248403823299674     1000 18121        2017-01-10 16:50:33.746 NULL   NULL      2017-01-10 16:50:32.816 courier          745448403823299432        NULL NULL            NULL           NULL         NULL                           1000
+ 539348403823321184            NULL 535248403823299674     1008 Send to DABP 2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 16:50:32.816 courier          745448403823299432        NULL NULL            NULL           NULL         NULL                           1012
+
+4. Run IntegrityBatchApp
+
+10 Jan 2017 17:03:47,768 INFO  root - Scan Name: Prevent contradicting ultimate parents in consumed data identified 1 records.
+
+5. Run Registry/Sentry 可以在Sentry的log中看到一条DABP的数据
+
+10 Jan 2017 17:06:01,857 INFO  reg10000 - ProcessFrequency method took 1224 milliseconds to complete for the frequency: DAILY.
+10 Jan 2017 17:06:01,858 INFO  reg10000 - Failed promote requests for frequency: DAILY: 0
+10 Jan 2017 17:06:01,858 INFO  reg10000 - Total skipped promotes for frequency DAILY: 1
+10 Jan 2017 17:06:01,859 INFO  reg10000 - Number of skipped records because of frequency: 0
+10 Jan 2017 17:06:01,859 INFO  reg10000 - Number of skipped records because of DABP: 1
+
+6. 虽然执行了SUB，但是因为在DABP状态，所以请求被Rejected，不会SUB
+
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 834148403827609866       10000 535248403823299674 535248403823299674                1000                 1002                     1000                   1000                     NULL                      1001                1 NULL                                  0 NULL                                NULL              NULL R               d9e4139bce9fc72ca1d7ec0c566839252c0b094deaf48fec32da915288048ad4 Y         NULL              535248403823299674 2017-01-10 17:06:00.9   526448403916091374 sentry
+ 
+
+----------------
+第二种情况:SUB之后将数据置为DABP 
+----------------
+
+1. 可以通过操作 KSCWORKFLOWSTEP 表的active状态直接设置DABP 当ENTITY_ACTIVE_IND=null 置为DABP 
+													   ENTITY_ACTIVE_IND=0 移出DABP
+									 
+select * from KSCWORKFLOWSTEP;
+ ID                 RESOLUTION_TP_CD ENTITY_ACTIVE_IND KSCWORKFLOW_STATUS_TP_CD WORKFLOW           BUSINESS_PROCESS_STEP PRIORITY ASSIGNED_USER STEP_COMMENT NEXT_WORKFLOW_STEP DEADLINE CREATED_DATE_TIME       STARTED_DATE_TIME FINISHED_DATE_TIME WORK_ITEM          WORK_ITEM_TP_CD LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ---------------- ----------------- ------------------------ ------------------ --------------------- -------- ------------- ------------ ------------------ -------- ----------------------- ----------------- ------------------ ------------------ --------------- ----------------------- ------------------ ----------------
+ 123548403902855941             NULL              NULL                     1000 122348403902850195               4769831        1          NULL NULL                       NULL NULL     2017-01-10 17:03:48.499 NULL              NULL               535248403823299674            1000 2017-01-10 17:06:00.9   526448403916091374 sentry
+ 
+先将数据移出DABP
+update kscworkflowstep set ENTITY_ACTIVE_IND = 0, last_update_dt = current_timestamp where id = 123548403902855941;
+
+2. Run Registry/Sentry  执行Registry和Sentry再进行SUB请求
+**Sentry会根据Registry上次执行的时间执行，即执行Registry上次执行前的数据，如果在Registry执行后更新数据Sentry不会执行**
+
+3. SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- -----------------1:41 2017/1/111:41 2017/1/117- ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 834148403827609866       10000 535248403823299674 535248403823299674                1000                 1002                     1001                   1000                     NULL                      1001                1 2017-01-10 17:12:10.45                0 2017-01-10                          NULL              NULL N               435cecabe680fb077820a3da3dca1722b1fa6a8877f459bf593ac923a1f77109 N         NULL              535248403823299674 2017-01-10 17:12:08.944 365248403952959681 sentry
+ 此时SUB成功                                             
+    
+4. 更新data类型的属性(name) (Courier只执行is_changed=1002的stage表的数据)
+数据再设为DABP
+update kscworkflowstep set ENTITY_ACTIVE_IND = null, last_update_dt = current_timestamp where id = 123548403902855941;
+
+update KSCStageOrg set IS_CHANGED=1002,LAST_UPDATE_DT=Current_Timestamp,NAME_ONE='Wont Change' where id=101133;
+
+5. Run Courier/IntegrityBatchApp/Registry/Sentry
+
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 834148403827609866       10000 535248403823299674 535248403823299674                1000                 1002                     1001                   1000                     NULL                      1001                1 2017-01-10 17:12:10.45                0 2017-01-10                          NULL              NULL N               435cecabe680fb077820a3da3dca1722b1fa6a8877f459bf593ac923a1f77109 N         NULL              535248403823299674 2017-01-10 17:12:08.944 365248403952959681 sentry
+ 
+select * from KSCCONSUMPTIONNAME;
+
+ ID                 ORG_ID             CONSUMER_ID KINS  NAME_TYPE NAME_VALUE      RESOLUTION_TP_CD ENTITY_ACTIVE_IND LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ------------------ ----------- ----- --------- --------------- ---------------- ----------------- ----------------------- ------------------ ----------------
+ 239248403952963436 239848403952959654       10000 18121 LEGAL     101133 Entity B             NULL              NULL 2017-01-10 17:12:09.569 423548403952957066 sentry
+ 
+虽然SUB了，但是name并没有被更新
+
+6. 移出DABP状态
+update kscworkflowstep set ENTITY_ACTIVE_IND = 0, last_update_dt = current_timestamp where id = 123548403902855941;
+
+7. Run Registry/Sentry
+
+select * from KSCCONSUMPTIONNAME;
+ ID                 ORG_ID             CONSUMER_ID KINS  NAME_TYPE NAME_VALUE      RESOLUTION_TP_CD ENTITY_ACTIVE_IND LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ------------------ ----------- ----- --------- --------------- ---------------- ----------------- ----------------------- ------------------ ----------------
+ 239248403952963436 239848403952959654       10000 18121 LEGAL     Wont Change                 NULL              NULL 2017-01-10 19:08:04.86  574148404648486187 sentry
+SUB状态，name属性成功更新
+
+--------------------------------
+
+--------------------------------
+
+三、同一条Request重复操作
+-----------
+第一种情况:  同时用一条request去SUB不同的hub data
+-----------
+1. 插入两条数据
+
+Insert into KSCStageOrg(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,
+ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,ENTITY_REL_INDICATOR,DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,LAST_UPDATE_DT)
+Values(10001,1002,Current_Timestamp,10001,1012,10001,10001,1000,1000,1000,1000,1001,'10001 Entity B',1001,1001,1000,1001,'C1',1029,1104,1001,10001,1000,Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (10001,'10001',1008,10001,current_timestamp);
+
+
+Insert into KSCStageOrg(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,
+ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,ENTITY_REL_INDICATOR,DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,LAST_UPDATE_DT)
+Values(10002,1002,Current_Timestamp,10002,1012,10002,10002,1000,1000,1000,1000,1001,'10002 Entity B',1001,1001,1000,1001,'C1',1029,1104,1001,10002,1000,Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (10002,'10002',1008,10002,current_timestamp);
+
+2. Run Courier 
+Registry.txt写入
+RSSD|181703802338|18127|OAC||DAILY|SUB|||||181703802333 B||||||||||||||||||||||
+RSSD|181703802338|18126|OAC||DAILY|SUB|||||181703802333 B||||||||||||||||||||||
+Run Registry/Sentry
+
+select * from KSCCONSUMPTIONSUBSCRIPTION; 
+
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 133848409214496246       10000 134248409206386824 134248409206386824                1000                 1002                     1000                   1000                     NULL                      1001                1 NULL                                  0 NULL                                NULL                 0 R               971cfa5380fb0e3509d4a9d022ea40e3fe99fc77e8fe0c4a27e5286c3053a0d5 NULL      NULL              134248409206386824 2017-01-11 07:49:06.495 584748409214649662 registry
+ 265348409214759884       10000 839248409206108016 839248409206108016                1000                 1002                     1001                   1000                     NULL                      1001                1 2017-01-11 07:49:23.212               0 2017-01-11                          NULL              NULL N               c3df4ce151e6894e3b72d2168e626e1b9c479a962445270d568424afc0115a9a NULL      NULL              839248409206108016 2017-01-11 07:49:20.302 915048409216141281 sentry
+ 
+select * from KSCCONSUMPTIONSUBSCRIPTION; 
+
+ ID                 KINS  CONSUMER_ID RECORDTYPE_TP_CD PRODUCTTYPE_TP_CD PROCESS_TYPE_TP_CD STATUS_TP_CD FREQUENCY_TP_CD REASON_TP_CD IS_SUBSCRIBED_TO START_DATE              ENTITY_ACTIVE_IND CONSUMER_SUBSCRIPTION_ID RESOLUTION_TP_CD WORK_PARTY_ID      UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----- ----------- ---------------- ----------------- ------------------ ------------ --------------- ------------ ---------------- ----------------------- ----------------- ------------------------ ---------------- ------------------ ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+ 694848409216410499 18126       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-11 07:49:23.212              NULL       265348409214759884             NULL 839248409206108016 36e0dc2c04d9455852a8e1c4cbb8e5a87e4c5533881b343743e86095454f4088 2017-01-11 07:49:20.302 915048409216141281 sentry
+ 
+第一条不会被SUB，第二条SUB成功
+
+-----------
+第二种情况:  用一条request先SUB一条数据，再SUB另一条
+-----------
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;    
+ ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 806348409390005711       10000 179248409365814145 179248409365814145                1000                 1002                     1001                   1000                     NULL                      1001                1 2017-01-11 08:18:38.426               0 2017-01-11                          NULL              NULL N               75ecbc3bba68657402a76dc885602c7d0471685180d4084cb173614985fb722e NULL      NULL              179248409365814145 2017-01-11 08:18:38.023 914848409391831269 sentry
+ 655048409377008335       10000 458948409365506731 458948409365506731                1000                 1002                     1006                   1000                     NULL                      1001                1 2017-01-11 08:16:33.914               0 2017-01-11                          NULL              NULL N               802a7aec18bc9420b79b38e16a80550111aa5022fc7bf7f46f689da0616ecd90 NULL      NULL              458948409365506731 2017-01-11 08:18:35.613 225848409391568471 sentry
+
+上一条数据Auto Unsubscribe，新一条数据SUB成功
+
+--------------------------------
+
+--------------------------------
+
+四、数据Merge
+--------
+同一用户在SUB成功两条数据后，两条数据发生merge
+--------
+1. sub两条数据
+
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+
+ ID                 KINS  CONSUMER_ID RECORDTYPE_TP_CD PRODUCTTYPE_TP_CD PROCESS_TYPE_TP_CD STATUS_TP_CD FREQUENCY_TP_CD REASON_TP_CD IS_SUBSCRIBED_TO START_DATE              ENTITY_ACTIVE_IND CONSUMER_SUBSCRIPTION_ID RESOLUTION_TP_CD WORK_PARTY_ID      UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----- ----------- ---------------- ----------------- ------------------ ------------ --------------- ------------ ---------------- ----------------------- ----------------- ------------------------ ---------------- ------------------ ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+ 333048405130544760 18124       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-10 20:28:28.069                 0       333648405126743564             NULL 706248405121978655 d212fdc6d5a590091f183adc5f10de9b4931b7047a9a2ddf1daebb7d8efc2a17 2017-01-10 20:35:01.253 841648405170127341 sentry
+ 212948405130617967 18125       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-10 20:28:27.397                 0       454248405126866618             NULL 729448405122181878 1888a3bd465ecad025f756c2cd986affd07fadd28ddf94f94849c4fe4cf7e8c8 2017-01-10 20:34:56.809 723348405169684224 sentry
+ 
+SELECT * from IDENTIFIER ;
+
+ IDENTIFIER_ID      ID_STATUS_TP_CD CONT_ID            ID_TP_CD REF_NUM START_DT                END_DT EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER LAST_UPDATE_TX_ID  ASSIGNED_BY IDENTIFIER_DESC ISSUE_LOCATION LAST_USED_DT LAST_VERIFIED_DT SOURCE_IDENT_TP_CD
+ ------------------ --------------- ------------------ -------- ------- ----------------------- ------ --------- ----------------------- ---------------- ------------------ ----------- --------------- -------------- ------------ ---------------- ------------------
+ 704448405122072893            NULL 706248405121978655     1000 18124   2017-01-10 20:27:00.727 NULL   NULL      2017-01-10 20:26:59.564 courier          995648405121978543        NULL NULL            NULL           NULL         NULL                           1000
+ 706048405122007657            NULL 706248405121978655     1008 10001   2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 20:26:59.564 courier          995648405121978543        NULL NULL            NULL           NULL         NULL                           1012
+ 724348405122206139            NULL 729448405122181878     1000 18125   2017-01-10 20:27:02.06  NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1000
+ 723048405122185995            NULL 729448405122181878     1008 10001   2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1012
+ 
+2. Merge数据 通过设 IDENTIFIER_VALUE 为一样，表明两条数据实为同一数据，可以merge
+* 只有IDENTIFIER_TYPE=1008才可以Merge *
+
+update KSCSTAGEORGIDENTIFIER set IDENTIFIER_VALUE='10001',LAST_UPDATE_DT=Current_Timestamp where id=10002;
+update KSCStageOrg set IS_CHANGED=1002,LAST_UPDATE_DT=Current_Timestamp  where id=10002;
+
+3. Run Courier/Registry/Sentry
+
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ; KINS小的赢,即KINS小的Enrolled，前一条的activie为0 KINS大的AutoUnsubscribe 
+
+ ID                 KINS  CONSUMER_ID RECORDTYPE_TP_CD PRODUCTTYPE_TP_CD PROCESS_TYPE_TP_CD STATUS_TP_CD FREQUENCY_TP_CD REASON_TP_CD IS_SUBSCRIBED_TO START_DATE              ENTITY_ACTIVE_IND CONSUMER_SUBSCRIPTION_ID RESOLUTION_TP_CD WORK_PARTY_ID      UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----- ----------- ---------------- ----------------- ------------------ ------------ --------------- ------------ ---------------- ----------------------- ----------------- ------------------------ ---------------- ------------------ ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+ 333048405130544760 18124       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-10 20:28:28.069                 0       333648405126743564             NULL 706248405121978655 d212fdc6d5a590091f183adc5f10de9b4931b7047a9a2ddf1daebb7d8efc2a17 2017-01-10 20:35:01.253 841648405170127341 sentry
+ 212948405130617967 18125       10000             1000              1002               1001         1006            1000         NULL                1 2017-01-10 20:28:27.397              NULL       454248405126866618             NULL 729448405122181878 1888a3bd465ecad025f756c2cd986affd07fadd28ddf94f94849c4fe4cf7e8c8 2017-01-10 20:34:56.809 723348405169684224 sentry
+ 133648405169927940 18124       10000             1000              1002               1001         1001            1000         NULL                1 2017-01-10 20:28:28.069              NULL       777948405166882556             NULL 721648405143935423 4dcc2c0cf9e730283250ac5f58ebbf4b5a46a0f0d29196698b58af7729501b2a 2017-01-10 20:34:58.511 452348405169866642 sentry
+ 
+SELECT * from IDENTIFIER ;  中间新生成的identifier将18125设为1083(PKINS Previous KINS)
+
+ IDENTIFIER_ID      ID_STATUS_TP_CD CONT_ID            ID_TP_CD REF_NUM START_DT                END_DT EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER LAST_UPDATE_TX_ID  ASSIGNED_BY IDENTIFIER_DESC ISSUE_LOCATION LAST_USED_DT LAST_VERIFIED_DT SOURCE_IDENT_TP_CD
+ ------------------ --------------- ------------------ -------- ------- ----------------------- ------ --------- ----------------------- ---------------- ------------------ ----------- --------------- -------------- ------------ ---------------- ------------------
+ 704448405122072893            NULL 706248405121978655     1000 18124   2017-01-10 20:27:00.727 NULL   NULL      2017-01-10 20:26:59.564 courier          995648405121978543        NULL NULL            NULL           NULL         NULL                           1000
+ 706048405122007657            NULL 706248405121978655     1008 10001   2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 20:26:59.564 courier          995648405121978543        NULL NULL            NULL           NULL         NULL                           1012
+
+ 727848405143966033            NULL 721648405143935423     1000 18124   2017-01-10 20:27:00.727 NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1000
+ 727148405143966130            NULL 721648405143935423     1008 10001   2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1012
+ 729448405143957228            NULL 721648405143935423     1083 18125   2017-01-10 20:27:02.06  NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1000
+ 
+ 724348405122206139            NULL 729448405122181878     1000 18125   2017-01-10 20:27:02.06  NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1000
+ 723048405122185995            NULL 729448405122181878     1008 10001   2017-01-10 00:00:00.0   NULL   NULL      2017-01-10 20:30:36.22  courier          724148405143674679        NULL NULL            NULL           NULL         NULL                           1012
+ 
+--------------------------------
+
+--------------------------------
+
+五、Security
+----------
+Security的插入
+----------
+1. 插入sec数据
+
+INSERT INTO KSCSTAGESECURITYPRETRANSFORM (ID) VALUES(1);
+
+INSERT INTO KSCSTAGESECURITY (ID, STAGE_SEC_PRE_TRANSFORM_ID,PROCESSING_STATUS, PROCESSING_STATUS_DATE_TIME, MATCH_KEY, DELTA_KEY,
+SOURCE_ID, SOURCE_PRIMARY_KEY_ONE, INITIAL_STAGE_DATE, LAST_CHANGE_DATE,SOURCE_STATUS, SOURCE_STATUS_DATE, MARKET_STATUS, MARKET_STATUS_DATE,
+NAME_TYPE_ONE, NAME_VALUE_ONE, NAME_TYPE_TWO, NAME_VALUE_TWO,DESCRIPTION_TYPE_ONE, DESCRIPTION_VALUE_ONE, SECURITY_CLASS,
+SECURITY_TYPE, STATE_OF_INCORPORATION, COUNTRY_OF_INCORPORATION,STATE_OF_DOMICILE, COUNTRY_OF_DOMICILE, COUNTRY_OF_ISSUE, IS_PRIMARY_SECURITY,
+ISSUE_DATE, INTEREST_RATE, INTEREST_FREQUENCY, SERIES_NAME,OBLIGOR, IS_BUILD_AMERICA, MATURITY_DATE, IS_CALLABLE, IS_PUTABLE,
+IS_SINKABLE, LAST_PAYMENT_DATE, PAYMENT_DATE, EXPIRATION_DATE,EXERCISE_PRICE, DELIVERY_TYPE, GUARANTOR_NAME, FUND_MANAGER,
+FUND_ADVISOR, FUND_CUSTODIAN, FUND_ADMINISTRATOR, FUND_FAMILY,FUND_LOAD, FUND_FYE, IS_INSTITUTIONAL, IDENTIFIER_TYPE_ONE,
+IDENTIFIER_VALUE_ONE, EXCHANGE_CODE_ONE, EXCHANGE_SYMBOL_ONE,IS_PRIMARY_EXCHANGE_ONE, IS_EXCHANGE_EXPIRED_ONE, REGULATION_TYPE_ONE,
+IS_REGULATED_ONE, LAST_UPDATE_DT)
+VALUES (30001, 1, 1002, CURRENT_TIMESTAMP, 30001, 30001, '1016',30001, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1000', CURRENT_TIMESTAMP,
+'1001', CURRENT_TIMESTAMP, '1000', '30001 for Sec', '1001','Testname', '1001', 'Desc', 1000, 1002, 1039, 1038, 1001,
+1038, 1038, 1000, CURRENT_TIMESTAMP, '5.87', 1003, 'TestSeries','TestObligor', 1000, CURRENT_TIMESTAMP, 1000, 1001, 1000,
+CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1382.00',1002, 'TestGuarantor', 'TestFUNDManager', 'TestFUNDAdvisor',
+'TestFUNDCustodian', 'TestFUNDAdministrator', 'TestFUNDFamily',1001, '1120', 1001, 1002, 'Identi 30001', 1001, 'Symbol 30001',1001, 1001, 1002, 1001, CURRENT_TIMESTAMP);
+
+2. Run Courier_sec
+
+3. SELECT * FROM KSCSECURITYIDENTIFIER;
+
+ ID                 SECURITY_ID        SRC_ID IDENTIFIER_TYPE IDENTIFIER_VALUE IDENTIFIER_COUNTRY RESOLUTION_TP_CD ENTITY_ACTIVE_IND LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ------------------ ------ --------------- ---------------- ------------------ ---------------- ----------------- ----------------------- ------------------ ----------------
+ 389448412010884480 381848412010861196   1016            1002 Identi 30001                   NULL             NULL              NULL 2017-01-11 15:35:08.253 487148412010860513 courier
+ 384148412010920565 381848412010861196   1000            1000 18135 (HUBID)                  NULL             NULL              NULL 2017-01-11 15:35:08.253 487148412010860513 courier
+ 
+4. Change Registry_sec.txt !!!!
+
+REC_CONSUMERID_TYPE = 0; REC_CONSUMERID = 1; REC_KINS = 2; REC_PRODUCT = 3; REC_PROCESS = 4; REC_FREQ = 5; REC_ACTION = 6; REC_STATE = 7; REC_REASON = 8; REC_SUB_START = 9; 
+REC_SUB_FULFILL = 10; REC_ID_TYPE1 = 18; REC_ID1 = 19; REC_ID_TYPE2 = 20; REC_ID2 = 21; REC_ID_TYPE3 = 22; REC_ID3 = 23; REC_ID_TYPE4 = 24; REC_ID4 = 25; REC_DP_ID_TYPE = 26; 
+REC_DP_ID = 27; REC_DP_NAME = 28; REC_DP_COUNTRY = 29;
+ISIN|30770022|18135|OAC||DAILY|SUB|||||402700601 OAC|ISIN|402700601 OAC|||||||||||||
+Run Registry/Sentry in sec mode.
+
+5. Sub 成功
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+  ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 138248411156666259       10000 779348410928370623 779348410928370623                1001                 1002                     1001                   1000                     NULL                      1001                1 2017-01-11 13:13:11.867               0 2017-01-11                          NULL              NULL N               345cc929db021d27a7edd99fd10ff5382fa9bb5cbd2f0993697d27bb84e88458 NULL      NULL              779348410928370623 2017-01-11 13:13:09.305 502048411159127615 sentry
+ 
+----------
+Security的AutoMatch  Matching Category: A1准则  https://confluence.kingland.com/display/DHTD/Security+Match
+----------
+ 1. 插入Securtiy数据
+ 
+ 2. Run Courier in sec mode
+ 
+ 3. 在Registry_sec.txt中插入一条不带有HUBID的请求 此时执行A1准则(HUB中的SubscribeRecordCompositeTxnBP中的determineA1Match()进行A1判断) 
+    需要匹配Identifier的Type和TICKER_SYMBOL和EXCHANGE_CODE
+
+    如果插入时EXCHANGE_CODE_ONE为空，则可以只通过Identifier_type/value匹配work表中的Hub data 进行sub
+
+	                                           1002                     1001 from CDKSCSECURITYEXCHANGECODETP 
+ ISIN|333013||OAC||DAILY|SUB|||||402700601 OAC|APIR|Identi 30001||||||||XALG|TIRANA STOCK EXCHANGE ||||
+                                                                        EXCHANGE_CODE_ONE|EXCHANGE_SYMBOL_ONE 这两列中有一个匹配即可
+
+ 4. Run Registry/Sentry 此时虽然没有在请求时写上HUBID，但是通过automatch可以使对应的hub data处于Enrolled状态
+ 
+ SELECT * FROM KSCSUBSCRCONSUMERRECORD;  
+ 
+  KSCSUBSCRIPTION_CONSUMER_REC CONSUMER_SUBSCRIPTION_ID CONSUMER_ID CONSUMER_RECORD_ID CONSUMER_RECORD_TP_CD NAME RESOLUTION_TP_CD ENTITY_ACTIVE_IND ADDRESS_LINE_ONE ADDRESS_LINE_TWO CITY STATE_PROVINCE POSTAL_CODE COUNTRY ID_TYPE_ONE ID_VALUE_ONE ID_TYPE_TWO ID_VALUE_TWO ID_TYPE_THREE ID_VALUE_THREE ID_TYPE_FOUR ID_VALUE_FOUR DIRECT_PARENT_ID_TYPE DIRECT_PARENT_ID DIRECT_PARENT_NAME DIRECT_PARENT_COUNTRY ULTIMATE_PARENT_ID_TYPE ULTIMATE_PARENT_ID ULTIMATE_PARENT_NAME ULTIMATE_PARENT_COUNTRY RECEIVED_DT             SHORT_DESC    TICKER_SYMBOL         SECURITY_CLASS EXCHANGE_CODE UNIQUE_CONSTRAINT                                                LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ---------------------------- ------------------------ ----------- ------------------ --------------------- ---- ---------------- ----------------- ---------------- ---------------- ---- -------------- ----------- ------- ----------- ------------ ----------- ------------ ------------- -------------- ------------ ------------- --------------------- ---------------- ------------------ --------------------- ----------------------- ------------------ -------------------- ----------------------- ----------------------- ------------- --------------------- -------------- ------------- ---------------------------------------------------------------- ----------------------- ------------------ ----------------
+           851848412096998947       855248412096989413       10000 333013                              1008 NULL             NULL              NULL NULL             NULL             NULL NULL           NULL        NULL    APIR        Identi 30001 NULL        NULL         NULL          NULL           NULL         NULL          NULL                  NULL             NULL               NULL                  NULL                    NULL               NULL                 NULL                    2017-01-11 15:49:29.891 402700601 OAC TIRANA STOCK EXCHANGE NULL           XALG          0a22fef47995b610bfe8a22fbea7ca9296fffa730c98eaed7ce7e3e6ec4ba51d 2017-01-11 15:49:29.001 727848412096900236 registry
+ 
+ SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+ 
+  ID                 CONSUMER_ID RECORD_ID          RECORD_GUP_ID      KSCRECORDTYPE_TP_CD KSCPRODUCTTYPE_TP_CD KSCSUBSCRIPTSTATUS_TP_CD KSCSUBSCRIPTFREQ_TP_CD KSCSUBSCRIPTREASON_TP_CD KSCSUBSCRIPTPROCESS_TP_CD IS_SUBSCRIBED_TO START_DATE              IS_SHELL_RECORD START_DATE_CURRENT_FREQ RESOLUTION_TP_CD ENTITY_ACTIVE_IND REQUIRES_SENTRY UNIQUE_CONSTRAINT                                                TREE_LOCK RESPONSE_MESSAGES TOP_GUP_ID         LAST_UPDATE_DT          LAST_UPDATE_TX_ID  LAST_UPDATE_USER
+ ------------------ ----------- ------------------ ------------------ ------------------- -------------------- ------------------------ ---------------------- ------------------------ ------------------------- ---------------- ----------------------- --------------- ----------------------- ---------------- ----------------- --------------- ---------------------------------------------------------------- --------- ----------------- ------------------ ----------------------- ------------------ ----------------
+ 855248412096989413       10000 129748412074567818 129748412074567818                1001                 1002                     1001                   1000                     NULL                      1001                1 2017-01-11 15:50:13.589               0 2017-01-11                          NULL              NULL N               4c56a7333e7fd42f2d53312729336e9e11785410c1280065b471ef930e4aa4c5 NULL      NULL              129748412074567818 2017-01-11 15:50:13.073 253148412101343198 sentry
+ 
+----------
+Security的Relationship 不同，处理逻辑也不同，只有父类才会AE(AutoEnrolled)
+Control/Significant 
+Priority越小，级别越高
+----------
+
+--------------------------------
+
+--------------------------------
+
+附：
+---------
+Courier
+---------
+1. 进行stage表中向work表的字段拆分，只有IS_CHANGED=1002的数据才会执行。
+2. 主要数据来源:HUB/GMF
+
+---------
+Registry
+---------
+1. 先进行UNSUB的判断，所以当一个请求同时SUB/UNSUB一条数据，仍然SUB
+2. 读取用户请求文件并判断状态
+3. RESUB 即使本次用户请求没有KINS 但是之前SUB过 依然要更新该数据
+
+---------
+Sentry
+---------
+1. 将work表中的数据放入Consumption表中
+2. DABP判断逻辑
+3. 不处理没有RecordId的
