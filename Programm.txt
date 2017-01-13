@@ -1,0 +1,36 @@
+﻿------------
+MDM HUB
+------------
+Clean Build
+WebSphere Application Server右击 Run Administraton Console  wasadmin a1b2c3d4
+Applications - Application Types - Business-level applications - MDM-operational-server-EBA-E001 - com.ibm.mdm.hub.server.app-E001_0001.eba - Extensions for this composition unit -
+KSC.cba
+
+WAS Admin Console WAS Version OS Port Web URL                          Admin User Password
+DEV服务器              8.5    AIX 9043 https://pad0021:9043/ibm/console wasadmin   a1b2c3d4
+
+
+KinglandMasterFileRegister
+       |
+com....compositeTxn
+       |
+SubscribeRecordBaseCompositeTxnBP 被继承
+               |                    |                           |
+SubscribeRecordCompositeTxnBP UnsubscribeRecordCompositeTxnBP ResubscribeRecordCompositeTxnBP
+
+execute()方法为入口
+
+MDMSharedResources
+sql 中存放了数据库flyway版本迁移的文件
+
+------------
+BatchUtilities
+------------
+代码要最新的，记得Gradle-Refresh Dependencies
+
+Courier 
+RunRegistry 传入两种参数org|sec 代表Organization 和 Security两种数据 
+RunSentry  
+两个都是自定义给真正的Registry和Sentry传参数的测试类，写了一些死数据
+IntegrityBatchApp
+执行DABP操作需要运行的类

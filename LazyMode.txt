@@ -1,0 +1,41 @@
+﻿-------
+db2cmd
+
+cd C:\development\Hub\MDMSharedResources
+
+gradlew flywayInfo
+gradlew flywayMigrate
+gradlew updateSQLExtracts
+
+db2 connect to MDMDB user db2admin using a1b2c3d4
+
+cd C:\development\Hub\MDMSharedResources\sql\extracts
+db2 -tvf Rollback_DB2_extract.sql
+db2 -tvf Setup_DB2_extract.sql
+
+cd:\lyh\data
+db2 -tvf CleanDBData.sql
+
+cd c:\bin     dab2 disconnect MDMDB
+dbupdate-customize.bat DB2
+
+jenkins  http://ci.kingland.cc/view/DSRO%20Build%20Pipeline/
+
+----------
+Server端操作
+
+pad0021 DEV环境
+pad0023 DB2server
+
+用户配置 https://confluence.kingland.com/display/DHTD/DSR+Hub+Customer+Configurations
+C:\development\ReleaseEngineering\SolutionConfig\Hub\ProductDefinitions\db2      zDSRHierarchy_TreeRules.sql
+
+WinSCP wasadmin@pad0021 DEVserver  Putty wasadmin a1b2c3d4
+bash
+cd /apps/dsrohub/batch-utilities/courier/
+./start_courier.sh -mode stageorg   或者security     参数错误也会导致无法stop_courier   Courier输出的日志在nohup.out（过大可以删除）中
+./stop_courier.sh     意外终止后先确保courier没有在后台运行(ps -ef | grep courier)，如果无法start 删除courier.pid文件
+cd ..
+./subscriptionMaster.sh -rs 10000   参数rs一起执行registry和sentry customerId=10000
+具体用户的请求文件设置在subscriptionMaster.properties 中的# Subscription Filenames 默认为org    可以在其中的EMAIL_LIST中配邮箱提示，出错可以有邮箱提示
+文件放在/apps/dsrohub/batch-utilities/registry/files下 如果有用户配了两种文件，无论执行哪种执行时两种文件都要创建 每次执行会清空，记得备份

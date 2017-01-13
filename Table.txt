@@ -1,0 +1,748 @@
+﻿--------- Stage Work ----------
+
+Org的stage表
+SELECT * FROM KSCSTAGEORG ;
+Sec的stage表
+SELECT * FROM KSCSTAGESECURITY;
+Indentifier “唯一表”
+SELECT * FROM IDENTIFIER ;
+Org Stage Indentifier
+SELECT * FROM KSCSTAGEORGIDENTIFIER;
+Sec Stage Indentifier
+SELECT * FROM KSCSECURITYIDENTIFIER;
+Org的名字
+SELECT * FROM ORGNAME;
+
+-- 向Stage插入Org数据
+Insert into KSCStageOrg(ID,IS_CHANGED,CREATE_DATE,SOURCE_PRIMARY_KEY,SOURCE_ID,MATCH_KEY,DELTA_KEY,SOURCE_STATUS,BUSINESS_STATUS,IS_PUBLICLY_TRADED,IS_SEC_REGISTRANT,IS_BRANCH,NAME_ONE,NAME_ONE_TYPE,
+ORG_TYPE,ORG_TYPE_CAT,ADDR_ONE_TYPE,ADDR_ONE_CITY,ADDR_ONE_STATE_PROV_CODE,ADDR_ONE_COUNTRY_CODE,ENTITY_REL_INDICATOR,DIRECT_PARENT_ID_ONE,DIRECT_PARENT_TYPE_ONE,LAST_UPDATE_DT)
+Values(10001,1002,Current_Timestamp,10001,1012,10001,10001,1000,1000,1000,1000,1001,'10001 Entity B',1001,1001,1000,1001,'C1',1029,1104,1001,10001,1000,Current_Timestamp);
+
+Insert into KSCSTAGEORGIDENTIFIER (id,IDENTIFIER_VALUE,IDENTIFIER_TYPE,STAGE_ORG_ID,last_update_dt)  
+values (10001,'10001',1008,10001,current_timestamp);
+
+-- 向Stage插入Sec数据
+INSERT INTO KSCSTAGESECURITYPRETRANSFORM (ID) VALUES(1);
+
+INSERT INTO KSCSTAGESECURITY (ID, STAGE_SEC_PRE_TRANSFORM_ID,PROCESSING_STATUS, PROCESSING_STATUS_DATE_TIME, MATCH_KEY, DELTA_KEY,
+SOURCE_ID, SOURCE_PRIMARY_KEY_ONE, INITIAL_STAGE_DATE, LAST_CHANGE_DATE,SOURCE_STATUS, SOURCE_STATUS_DATE, MARKET_STATUS, MARKET_STATUS_DATE,
+NAME_TYPE_ONE, NAME_VALUE_ONE, NAME_TYPE_TWO, NAME_VALUE_TWO,DESCRIPTION_TYPE_ONE, DESCRIPTION_VALUE_ONE, SECURITY_CLASS,
+SECURITY_TYPE, STATE_OF_INCORPORATION, COUNTRY_OF_INCORPORATION,STATE_OF_DOMICILE, COUNTRY_OF_DOMICILE, COUNTRY_OF_ISSUE, IS_PRIMARY_SECURITY,
+ISSUE_DATE, INTEREST_RATE, INTEREST_FREQUENCY, SERIES_NAME,OBLIGOR, IS_BUILD_AMERICA, MATURITY_DATE, IS_CALLABLE, IS_PUTABLE,
+IS_SINKABLE, LAST_PAYMENT_DATE, PAYMENT_DATE, EXPIRATION_DATE,EXERCISE_PRICE, DELIVERY_TYPE, GUARANTOR_NAME, FUND_MANAGER,
+FUND_ADVISOR, FUND_CUSTODIAN, FUND_ADMINISTRATOR, FUND_FAMILY,FUND_LOAD, FUND_FYE, IS_INSTITUTIONAL, IDENTIFIER_TYPE_ONE,
+IDENTIFIER_VALUE_ONE, EXCHANGE_CODE_ONE, EXCHANGE_SYMBOL_ONE,IS_PRIMARY_EXCHANGE_ONE, IS_EXCHANGE_EXPIRED_ONE, REGULATION_TYPE_ONE,
+IS_REGULATED_ONE, LAST_UPDATE_DT)
+VALUES (30001, 1, 1002, CURRENT_TIMESTAMP, 30001, 30001, '1016',30001, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1000', CURRENT_TIMESTAMP,
+'1001', CURRENT_TIMESTAMP, '1000', '30001 for Sec', '1001','Testname', '1001', 'Desc', 1000, 1002, 1039, 1038, 1001,
+1038, 1038, 1000, CURRENT_TIMESTAMP, '5.87', 1003, 'TestSeries','TestObligor', 1000, CURRENT_TIMESTAMP, 1000, 1001, 1000,
+CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1382.00',1002, 'TestGuarantor', 'TestFUNDManager', 'TestFUNDAdvisor',
+'TestFUNDCustodian', 'TestFUNDAdministrator', 'TestFUNDFamily',1001, '1120', 1001, 1002, 'Identi 30001', 1001, 'Symbol 30001',1001, 1001, 1002, 1001, CURRENT_TIMESTAMP);
+
+-- HUBID for ORG Courier后查找HUBID
+SELECT IDENTIFIER.CONT_ID, IDENTIFIER.REF_NUM, CONTEQUIV.ADMIN_CLIENT_ID
+FROM IDENTIFIER AS IDENTIFIER JOIN CONTEQUIV AS CONTEQUIV ON IDENTIFIER.CONT_ID = CONTEQUIV.CONT_ID
+WHERE IDENTIFIER.ID_TP_CD = 1000 AND CONTEQUIV.ADMIN_CLIENT_ID = ;  -- HUBID
+
+-- Merge数据要更改的字段
+update KSCSTAGEORGIDENTIFIER set IDENTIFIER_VALUE='10001',LAST_UPDATE_DT=Current_Timestamp where id=10002;
+update KSCStageOrg set IS_CHANGED=1002,LAST_UPDATE_DT=Current_Timestamp  where id=10002;
+
+---------- Consumer Consumption ----------
+
+-- Consumer 列表
+SELECT * FROM KSCCONSUMER;
+-- 用户提交记录表 存放状态改变的记录  一条请求只有一行  和record表(下表)为一对多关系
+SELECT * FROM KSCCONSUMERSUBSCRIPTION ;
+-- 用户请求表 Record
+select * from KSCSUBSCRCONSUMERRECORD;  
+-- hub id 的操作状态表
+select * from KSCCONSUMPTIONSUBSCRIPTION; 
+-- Consumption名字
+select * from KSCCONSUMPTIONNAME;
+-- Consumption Sec名字
+SELECT * FROM KSCCONSUMPTIONSECNAME;
+-- Consumption Org
+SELECT * FROM KSCCONSUMPTIONORG;
+-- Consumption Sec
+SELECT * FROM KSCCONSUMPTIONSECURITY;
+-- Consumption 事件记录
+select * from KSCCONSUMPTIONEVENT;
+-- Consumption关系
+SELECT * FROM KSCCONSUMPTIONRELATIONSHIP;
+-- Consumption Identifier
+SELECT * FROM KSCCONSUMPTIONIDENTIFIER;
+
+----------- DABP ------------
+WorkFlow
+select * from KSCWORKFLOWSTEP;
+IntegrityScan
+select * from KSCINTEGRITYSCAN;
+BP
+select * from KSCBUSINESSPROCESS;
+DABP
+select * from KSCDISALLOWEDTASK;
+
+查找处于DABP状态的hub data
+select identifier.CONT_ID from IDENTIFIER where REF_NUM='Send to DABP';
+
+-- 直接操作 KSCWORKFLOWSTEP 设置DABP
+update kscworkflowstep set ENTITY_ACTIVE_IND = 0, last_update_dt = current_timestamp where id = 123548403902855941;
+update kscworkflowstep set ENTITY_ACTIVE_IND = null, last_update_dt = current_timestamp where id = 123548403902855941;
+
+-- 创建BP 
+Insert into db2admin.KSCBUSINESSPROCESS(ID ,ENTITY_ACTIVE_IND,NAME,DESCRIPTION,LAST_UPDATE_DT)
+Values(476983,1,'Prevent contradicting ultimate parents in consumed data' ,'Prevent contradicting ultimate parents in consumed data', Current_Timestamp);
+-- 创建BP Step
+Insert into db2admin.KSCBPSTEP(ID,Entity_Active_IND,NAME ,Description,IS_FIRST_STEP,BUSINESS_PROCESS,UI_TOOL_TP_CD,GUIDANCE,LAST_UPDATE_DT)
+Values(4769831,1,'Prevent contradicting ultimate parents in consumed data','Prevent contradicting ultimate parents in consumed data',1,476983,1,'Prevent contradicting ultimate parents in consumed data',Current_Timestamp);
+-- Assign an outcome to business Process Step
+Insert into db2admin.KSCBPSTEPOUTCOME(ID ,Entity_Active_IND,NAME,DESCRIPTION,Next_Business_Process_Step,Business_Process_Step,LAST_UPDATE_DT)
+Values(4769832,1,'Finish' ,'Finish' ,1000,4769831,Current_Timestamp);
+-- Assign Group to Business Process Step--
+Insert into db2admin.KSCBPSTEPGROUPPROFILEBRIDGE(ID ,ENTITY_ACTIVE_IND,BUSINESS_PROCESS_STEP,USER_GROUP_PROFILE,LAST_UPDATE_DT)
+Values(4769833,1,4769831,1,Current_Timestamp );
+
+-- 创建 DABP --
+Insert into db2admin.KSCDISALLOWEDTASK(ID ,CONSUMER_ID,KSCPRODUCTTYPE_TP_CD,BUSINESS_PROCESS_ID,LAST_UPDATE_DT,DABP_TYPE)
+values(4769836,10000,1002,476983,Current_Timestamp,'D');
+
+-- Integrity Scans --
+Insert into db2admin.KSCINTEGRITYSCAN(ID ,Entity_Active_IND,Is_Stored_Procedure_Call,SQLSTMT,Result_BUSINESS_PROCESS_STEP,Result_Type_TP_CD, Name,Execution_Frequency,Last_Update_DT)
+Values(4769836,1,0, 'select identifier.CONT_ID  from IDENTIFIER where REF_NUM=''Send to DABP''',4769831,1000,'Prevent contradicting ultimate parents in consumed data',1001,Current_Timestamp);
+
+-- 将hub data设为DABP状态
+update IDENTIFIER SET REF_NUM = 'Send to DABP' where IDENTIFIER_ID=539348403823321184;
+select identifier.CONT_ID  from IDENTIFIER where REF_NUM='Send to DABP';
+
+-- 更新hub data data相关属性
+UPDATE KSCSTAGEORG SET Is_Changed=1002,NAME_ONE='Change name',last_update_dt=Current_timestamp  WHERE ID =100112;
+
+
+
+--------------
+CodeTable
+--------------
+---------------------------------------------------------
+KSCCONSUMERSUBSCRIPTION 中 STATUS_TP_CD 对应的值 ACTION
+
+select * from CDKSCSUBSCRIPTIONTYPETP;
+
+ LANG_TP_CD KSCSUBSCRIPTIONTYPE_TP_CD NAME DISPLAY_VALUE     DISPLAY_ORDER DESCRIPTION       
+ ---------- ------------------------- ---- ----------------- ------------- -----------------
+        100                      1000 P    Pending                      10 Pending         
+        100                      1001 E    Enrolled                     20 Enrolled        
+        100                      1002 AE   Auto Enrolled                30 Auto Enrolled    
+        100                      1003 R    Rejected                     40 Rejected         
+        100                      1004 D    Declined                     50 Declined         
+        100                      1005 U    Unsubscribed                 60 Unsubscribed      
+        100                      1006 AU   Auto Unsubscribed            70 Auto Unsubscribed 
+
+
+---------------------------------------------------------
+IDENTIFIER中ID_TP_CD对应的值  Identifer_type
+
+SELECT * FROM CDKSCSECURITYIDENTIFIERTP;
+
+ LANG_TP_CD KSCSECURITYIDENTIFIER_TP_CD NAME             DISPLAY_VALUE            DISPLAY_ORDER DESCRIPTION                                                              EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER
+ ---------- --------------------------- ---------------- ------------------------ ------------- ------------------------------------------------------------------------ --------- ----------------------- ----------------
+        100                        1000 KINS             KINS                                10 KSC unique identifier                                                    NULL      2017-01-09 17:26:57.861 NULL
+        100                        1083 PKINS            PKINS                              220 Previous KSC unique identifier                                           NULL      2017-01-09 17:26:57.865 NULL
+        100                        1002 APIR             APIR                                30 Asia Pacific Investment Register                                         NULL      2017-01-09 17:26:57.868 NULL
+        100                        1003 BLOOMBERG        Bloomberg                           50 Bloomberg Identifier                                                     NULL      2017-01-09 17:26:57.87  NULL
+        100                        1004 CINS             CINS                                80 CUSIP International Numbering System                                     NULL      2017-01-09 17:26:57.873 NULL
+        100                        1005 COMMONCODE       Common Code                         90 Common code                                                              NULL      2017-01-09 17:26:57.876 NULL
+        100                        1006 CUSIP            CUSIP                              100 Committee on Uniform Security Identification Procedures                  NULL      2017-01-09 17:26:57.881 NULL
+        100                        1007 FUNDSERV         FundSERV                           120 Fundserv                                                                 NULL      2017-01-09 17:26:57.882 NULL
+        100                        1008 ISIN             ISIN                               130 International Securities Identification Number                           NULL      2017-01-09 17:26:57.882 NULL
+        100                        1009 RIC              RIC                                150 Reuters Identification Code                                              NULL      2017-01-09 17:26:57.883 NULL
+        100                        1010 SEDOL            SEDOL                              160 Stock Exchange Daily Official List                                       NULL      2017-01-09 17:26:57.884 NULL
+        100                        1011 SICOVAM          SICOVAM                            170 Societe Interprofessionnelle pour la Compensation des Valeurs Mobilieres NULL      2017-01-09 17:26:57.887 NULL
+        100                        1012 SVM              SVM                                180 Secretariat des Valeurs Mobilieres                                       NULL      2017-01-09 17:26:57.889 NULL
+        100                        1013 VALOR            VALOR                              190 Valor                                                                    NULL      2017-01-09 17:26:57.89  NULL
+        100                        1014 WKN              WKN                                200 Wertpapier Kenn-Nummer                                                   NULL      2017-01-09 17:26:57.891 NULL
+        100                        1015 EUROCLEAR        Euroclear                          110 Euroclear number                                                         NULL      2017-01-09 17:26:57.892 NULL
+        100                        1016 XTRAKTER         Xtrakter                           210 Xtrakter number                                                          NULL      2017-01-09 17:26:57.919 NULL
+        100                        1017 CEDEL            CEDEL                               70 Cedel number                                                             NULL      2017-01-09 17:26:57.921 NULL
+        100                        1018 JAPAN_NUM        Japan Number                       140 Japanese domestic code assigned to fixed income securities               NULL      2017-01-09 17:26:57.925 NULL
+        100                        1019 AUSTRIAN_NUM     Austrian Number                     40 Austrian identification number                                           NULL      2017-01-09 17:26:57.928 NULL
+        100                        1020 BLOOMBERG_CO_NUM Bloomberg Company Number            60 Bloomberg number assigned to issuer                                      NULL      2017-01-09 17:26:57.932 NULL
+        100                        1021 INSTRUMENT_ID    INSTRUMENT_ID                      230 INSTRUMENT_ID                                                            NULL      2017-01-09 17:26:57.933 NULL
+        100                        1022 SOIDH            SOIDH                              300 SOIDH                                                                    NULL      2017-01-09 17:26:57.935 NULL
+        100                        1023 MOIDH            MOIDH                              301 MOIDH                                                                    NULL      2017-01-09 17:26:57.936 NULL
+        100                        1024 BOIDH            BOIDH                              302 BOIDH                                                                    NULL      2017-01-09 17:26:57.937 NULL
+        100                        1025 TOIDH            TOIDH                              303 TOIDH                                                                    NULL      2017-01-09 17:26:57.938 NULL
+        100                        1026 UOIDH            UOIDH                              304 UOIDH                                                                    NULL      2017-01-09 17:26:57.952 NULL
+        100                        1027 GMFID            GMFID                               25 Global Master File ID                                                    NULL      2017-01-09 17:26:57.953 NULL
+        100                        1028 SHELFID          SHELFID                            400 Shelf ID                                                                 NULL      2017-01-09 17:26:57.954 NULL
+
+---------------------------------------------------------
+用户信息codetable
+SELECT * FROM KSCCONSUMER;
+
+ ID     CONSUMER_NAME                  CONTACT_NAME CONTACT_EMAIL RESOLUTION_TP_CD ENTITY_ACTIVE_IND LAST_UPDATE_DT             LAST_UPDATE_TX_ID LAST_UPDATE_USER
+ ------ ------------------------------ ------------ ------------- ---------------- ----------------- -------------------------- ----------------- ----------------
+  70000 Bank of New York Mellon - CDR2 NULL         NULL                      NULL              NULL 2014-09-25 03:47:22.519201              NULL NULL
+  10000 Bank of New York Mellon        NULL         NULL                      NULL              NULL 2014-09-25 03:47:23.22372               NULL NULL
+  50000 Goldman Sachs                  NULL         NULL                      NULL              NULL 2014-09-25 03:47:23.984921              NULL NULL
+  20000 Kingland Systems               NULL         NULL                      NULL              NULL 2014-09-25 03:47:26.143958              NULL NULL
+  30000 Mellon                         NULL         NULL                      NULL              NULL 2014-09-25 03:47:28.880381              NULL NULL
+  90000 Northern Trust GEMS            NULL         NULL                      NULL              NULL 2014-09-25 03:47:29.266675              NULL NULL
+  80000 Northern Trust                 NULL         NULL                      NULL              NULL 2014-09-25 03:47:29.624152              NULL NULL
+ 100000 Raymond James (BIGEST)         NULL         NULL                      NULL              NULL 2014-09-25 03:47:30.35367               NULL NULL
+  40000 UBS                            NULL         NULL                      NULL              NULL 2014-09-25 03:47:32.419601              NULL NULL
+   1000 Clarity                        NULL         NULL                      NULL              NULL 2014-09-25 03:47:32.630001              NULL NULL
+ 200000 temp                           NULL         NULL                      NULL              NULL 2014-09-29 23:05:34.795987              NULL NULL
+ 110000 Fidelity                       NULL         NULL                      NULL              NULL 2015-02-02 02:17:21.304261              NULL NULL
+ 130000 Grant Thornton                 NULL         NULL                      NULL              NULL 2016-03-09 01:14:16.329674              NULL NULL
+ 120000 BDO                            NULL         NULL                      NULL              NULL 2016-03-09 01:14:47.038021              NULL NULL
+ 
+
+---------------------------------------------------------
+进度状态codetable
+SELECT * FROM CDKSCPROCESSINGSTATUSTP;
+ LANG_TP_CD KSCPROCESSINGSTATUS_TP_CD NAME              DISPLAY_VALUE                                                 DISPLAY_ORDER DESCRIPTION EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER
+ ---------- ------------------------- ----------------- ------------------------------------------------------------- ------------- ----------- --------- ----------------------- ----------------
+        100                      1000 COMPLETE          Complete                                                                 10 NULL        NULL      2017-01-09 17:26:26.252 NULL
+        100                      1001 INPROCESS         In Process                                                               20 NULL        NULL      2017-01-09 17:26:26.306 NULL
+        100                      1002 NEEDSPROCESSING   Needs Processing                                                         30 NULL        NULL      2017-01-09 17:26:26.312 NULL
+        100                      1003 MISSINGPARENT     Missing Parent                                                           40 NULL        NULL      2017-01-09 17:26:26.315 NULL
+        100                      1004 FAILEDTOPERSIST   Failed To Persist                                                        50 NULL        NULL      2017-01-09 17:26:26.322 NULL
+        100                      1005 INVALIDCHARACTER  Invalid Character                                                        60 NULL        NULL      2017-01-09 17:26:26.327 NULL
+        100                      1006 TEMPMISSINGPARENT Temporary Missing Parent                                                 70 NULL        NULL      2017-01-09 17:26:26.334 NULL
+        100                      1007 WAITINGCHILD      Waiting related attributes                                               80             NULL      2017-01-09 17:26:26.34  
+        100                      1009 REPLACEDREC       Record has been replaced as a duplicate in the source system.            90 NULL        NULL      2017-01-09 17:26:26.347 NULL
+	
+---------------------------------------------------------
+Relationship codetable
+SELECT * FROM CDRELTP;
+ LANG_TP_CD REL_TP_CD FROM_TO_NAME          TO_FROM_NAME              DESCRIPTION EXPIRY_DT             LAST_UPDATE_DT
+ ---------- --------- --------------------- ------------------------- ----------- --------------------- -----------------------
+        100      1000 CONTROL               Is Controlled By          NULL        NULL                  2017-01-09 17:26:29.251
+        100      1001 JOINTVENTURE          Is Controlled By (JV)     NULL        NULL                  2017-01-09 17:26:29.258
+        100      1002 Is Ultimate Parent Of Has Ultimate Parent Of    NULL        2015-02-10 00:00:00.0 2017-01-09 17:26:29.262
+        100      1003 INVESTMENT            Has Investment Company Of NULL        NULL                  2017-01-09 17:26:29.267
+        100      1004 SPONSOR               Is Sponsored By           NULL        NULL                  2017-01-09 17:26:29.269
+        100      1005 ADVISOR               Is Advised By             NULL        NULL                  2017-01-09 17:26:29.271
+        100      1006 Has Influence Over    Is Influenced By          NULL        NULL                  2017-01-09 17:26:29.275 （Significant）
+ 	
+---------------------------------------------------------
+扫描频率codetable
+SELECT * FROM CDKSCINTEGRITYSCANFREQTP;
+
+ LANG_TP_CD TP_CD NAME     DISPLAY_VALUE DISPLAY_ORDER DESCRIPTION                 EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER
+ ---------- ----- -------- ------------- ------------- --------------------------- --------- ----------------------- ----------------
+        100  1000 REALTIME Real-time                10 Real-time                   NULL      2017-01-09 17:26:25.358 NULL
+        100  1001 HOURLY   Hourly                   20 Hourly                      NULL      2017-01-09 17:26:25.36  NULL
+        100  1002 DAILY    Daily                    30 Daily                       NULL      2017-01-09 17:26:25.361 NULL
+        100  1003 WEEKLY   Weekly                   40 Weekly                      NULL      2017-01-09 17:26:25.362 NULL
+        100  1004 MONTHLY  Monthly                  50 Monthly                     NULL      2017-01-09 17:26:25.363 NULL
+        100  1005 POST-REG Post-Reg                 60 Between Registry and Sentry NULL      2017-01-09 17:26:25.366 NULL
+ 
+---------------------------------------------------------
+SecurityExchangeCode
+
+SELECT * FROM CDKSCSECURITYEXCHANGECODETP;
+
+ LANG_TP_CD KSCSECURITYEXCHCODE_TP_CD NAME                                                            IS_REGULATED REGULATOR EXCHANGE_CODE EXCHANGE_COUNTRY DISPLAY_VALUE DISPLAY_ORDER DESCRIPTION EXPIRY_DT LAST_UPDATE_DT          LAST_UPDATE_USER
+ ---------- ------------------------- --------------------------------------------------------------- ------------ --------- ------------- ---------------- ------------- ------------- ----------- --------- ----------------------- ----------------
+        100                      1000 TIRANA STOCK EXCHANGE                                                   1001      NULL XTIR                      1002 XTIR                   6580 NULL        NULL      2017-01-09 17:26:50.999 NULL
+        100                      1001 ALGIERS STOCK EXCHANGE                                                  1001      NULL XALG                      1003 XALG                   3290 NULL        NULL      2017-01-09 17:26:51.004 NULL
+        100                      1002 BUENOS AIRES CEREAL EXCHANGE                                            1001      NULL BACE                      1010 BACE                    140 NULL        NULL      2017-01-09 17:26:51.007 NULL
+        100                      1003 BOLSA DE COMERCIO DE SANTA FE                                           1001      NULL BCFS                      1010 BCFS                    230 NULL        NULL      2017-01-09 17:26:51.011 NULL
+        100                      1004 MERCADO DE VALORES DE CORBODA                                           1001      NULL MVCX                      1010 MVCX                   2200 NULL        NULL      2017-01-09 17:26:51.012 NULL
+        100                      1005 ROSARIO FUTURE EXCHANGE                                                 1001      NULL ROFX                      1010 ROFX                   2650 NULL        NULL      2017-01-09 17:26:51.013 NULL
+        100                      1006 A1                                                                      1001      NULL XA1X                      1010 XA1X                   3230 NULL        NULL      2017-01-09 17:26:51.014 NULL
+        100                      1007 BOLSA DE COMERCIO DE CORBODA                                            1001      NULL XBCC                      1010 XBCC                   3470 NULL        NULL      2017-01-09 17:26:51.016 NULL
+        100                      1008 BOLSA DE COMMERCIO DE MENDOZA S.A.                                      1001      NULL XBCM                      1010 XBCM                   3490 NULL        NULL      2017-01-09 17:26:51.02  NULL
+        100                      1009 MERCADO DE VALORES DE MENDOZA                                           1001      NULL XBCX                      1010 XBCX                   3510 NULL        NULL      2017-01-09 17:26:51.021 NULL
+        100                      1010 BUENOS AIRES STOCK EXCHANGE                                             1001      NULL XBUE                      1010 XBUE                   3790 NULL        NULL      2017-01-09 17:26:51.023 NULL
+        100                      1011 BOLSA DE COMERCIO CONFEDERADA S.A.                                      1001      NULL XCNF                      1010 XCNF                   4030 NULL        NULL      2017-01-09 17:26:51.024 NULL
+        100                      1012 MERCADO ABIERTO ELECTRONICO S.A.                                        1001      NULL XMAB                      1010 XMAB                   5180 NULL        NULL      2017-01-09 17:26:51.024 NULL
+        100                      1013 MERCADO DE VALORES DE BUENOS AIRES S.A.                                 1001      NULL XMEV                      1010 XMEV                   5310 NULL        NULL      2017-01-09 17:26:51.039 NULL
+        100                      1014 MERCADO A TERMINO DE BUENOS AIRES S.A.                                  1001      NULL XMTB                      1010 XMTB                   5460 NULL        NULL      2017-01-09 17:26:51.04  NULL
+        100                      1015 MERCADO DE VALORES DEL LITORAL                                          1001      NULL XMVL                      1010 XMVL                   5490 NULL        NULL      2017-01-09 17:26:51.042 NULL
+        100                      1016 BOLSA DE COMERCIO ROSARIO                                               1001      NULL XROS                      1010 XROS                   6110 NULL        NULL      2017-01-09 17:26:51.043 NULL
+        100                      1017 MERCADO DE VALORES DE ROSARIO                                           1001      NULL XROX                      1010 XROX                   6130 NULL        NULL      2017-01-09 17:26:51.044 NULL
+        100                      1018 NUEVA BOLSA DE COMERCIO DE TUCUMAN S.A.                                 1001      NULL XTUC                      1010 XTUC                   6710 NULL        NULL      2017-01-09 17:26:51.046 NULL
+        100                      1019 ARMENIAN STOCK EXCHANGE                                                 1001      NULL XARM                      1011 XARM                   3350 NULL        NULL      2017-01-09 17:26:51.047 NULL
+        100                      1020 AUSTRALIAN WHEAT BOARD                                                  1001      NULL AWBX                      1013 AWBX                    120 NULL        NULL      2017-01-09 17:26:51.065 NULL
+        100                      1021 AUSTRALIAN WOOL EXCHANGE                                                1001      NULL AWEX                      1013 AWEX                    130 NULL        NULL      2017-01-09 17:26:51.066 NULL
+        100                      1022 CHI-X AUSTRALIA                                                         1001      NULL CHIA                      1013 CHIA                    640 NULL        NULL      2017-01-09 17:26:51.067 NULL
+        100                      1023 BENDIGO STOCK EXCHANGE LIMITED                                          1001      NULL NSXB                      1013 NSXB                   2360 NULL        NULL      2017-01-09 17:26:51.069 NULL
+        100                      1024 AUSTRALIAN SECURITIES EXCHANGE LIMITED                                  1001      NULL XASX                      1013 XASX                   3370 NULL        NULL      2017-01-09 17:26:51.07  NULL
+        100                      1025 NATIONAL STOCK EXCHANGE OF AUSTRALIA LIMITED                            1001      NULL XNEC                      1013 XNEC                   5590 NULL        NULL      2017-01-09 17:26:51.073 NULL
+        100                      1026 ASX 24                                                                  1001      NULL XSFE                      1013 XSFE                   6300 NULL        NULL      2017-01-09 17:26:51.075 NULL
+        100                      1027 YIELDBROKER PTY LTD                                                     1001      NULL XYIE                      1013 XYIE                   6880 NULL        NULL      2017-01-09 17:26:51.076 NULL
+        100                      1028 AUSTRIAN ENERGY EXCHANGE                                                1001      NULL EXAA                      1014 EXAA                   1090 NULL        NULL      2017-01-09 17:26:51.077 NULL
+        100                      1029 WIENER BOERSE AG AMTLICHER HANDEL (OFFICIAL MARKET)                     1000      1016 WBAH                      1014 WBAH                   3180 NULL        NULL      2017-01-09 17:26:51.08  NULL
+        100                      1030 WIENER BOERSE AG DRITTER MARKT (THIRD MARKET)                           1001      NULL WBDM                      1014 WBDM                   3190 NULL        NULL      2017-01-09 17:26:51.084 NULL
+        100                      1031 WIENER BOERSE AG GEREGELTER FREIVERKEHR (SEMI-OFFICIAL MARKET)          1000      1016 WBGF                      1014 WBGF                   3200 NULL        NULL      2017-01-09 17:26:51.088 NULL
+        100                      1032 WIENER BOERSE AG                                                        1001      NULL XWBO                      1014 XWBO                   6850 NULL        NULL      2017-01-09 17:26:51.09  NULL
+        100                      1033 BAKU STOCK EXCHANGE                                                     1001      NULL BSEX                      1015 BSEX                    450 NULL        NULL      2017-01-09 17:26:51.091 NULL
+        100                      1034 BAKU INTERBANK CURRENCY EXCHANGE                                        1001      NULL XIBE                      1015 XIBE                   4670 NULL        NULL      2017-01-09 17:26:51.092 NULL
+        100                      1035 BAHAMAS INTERNATIONAL SECURITIES EXCHANGE                               1001      NULL XBAA                      1016 XBAA                   3400 NULL        NULL      2017-01-09 17:26:51.093 NULL
+        100                      1036 BAHRAIN STOCK EXCHANGE                                                  1001      NULL XBAH                      1017 XBAH                   3420 NULL        NULL      2017-01-09 17:26:51.095 NULL
+        100                      1037 CHITTAGONG STOCK EXCHANGE LTD.                                          1001      NULL XCHG                      1018 XCHG                   3980 NULL        NULL      2017-01-09 17:26:51.097 NULL
+        100                      1038 DHAKA STOCK EXCHANGE LTD                                                1001      NULL XDHA                      1018 XDHA                   4170 NULL        NULL      2017-01-09 17:26:51.098 NULL
+        100                      1039 BARBADOS STOCK EXCHANGE                                                 1001      NULL XBAB                      1019 XBAB                   3410 NULL        NULL      2017-01-09 17:26:51.099 NULL
+        100                      1040 BELARUS CURRENCY AND STOCK EXCHANGE                                     1001      NULL BCSE                      1020 BCSE                    240 NULL        NULL      2017-01-09 17:26:51.1   NULL
+        100                      1041 NYSE EURONEXT - ALTERNEXT BRUSSELS                                      1001      NULL ALXB                      1021 ALXB                     50 NULL        NULL      2017-01-09 17:26:51.101 NULL
+        100                      1042 BELGIAN POWER EXCHANGE                                                  1001      NULL BLPX                      1021 BLPX                    350 NULL        NULL      2017-01-09 17:26:51.103 NULL
+        100                      1043 MTS BELGIUM                                                             1001      NULL BMTS                      1021 BMTS                    390 NULL        NULL      2017-01-09 17:26:51.104 NULL
+        100                      1044 NYSE EURONEXT - EASY NEXT                                               1001      NULL ENXB                      1021 ENXB                    980 NULL        NULL      2017-01-09 17:26:51.105 NULL
+        100                      1045 FONDS DES RENTES / RENTENFONDS                                          1000      1002 FRRF                      1021 FRRF                   1260 NULL        NULL      2017-01-09 17:26:51.106 NULL
+        100                      1046 NYSE EURONEXT - MARCHE LIBRE BRUSSELS                                   1001      NULL MLXB                      1021 MLXB                   2050 NULL        NULL      2017-01-09 17:26:51.107 NULL
+        100                      1047 MTS DENMARK                                                             1001      NULL MTSD                      1021 MTSD                   2120 NULL        NULL      2017-01-09 17:26:51.108 NULL
+        100                      1048 MTS FINLAND                                                             1001      NULL MTSF                      1021 MTSF                   2130 NULL        NULL      2017-01-09 17:26:51.109 NULL
+        100                      1049 NYSE EURONEXT - TRADING FACILITY BRUSSELS                               1001      NULL TNLB                      1021 TNLB                   3010 NULL        NULL      2017-01-09 17:26:51.11  NULL
+        100                      1050 NYSE EURONEXT - VENTES PUBLIQUES BRUSSELS                               1001      NULL VPXB                      1021 VPXB                   3160 NULL        NULL      2017-01-09 17:26:51.111 NULL
+        100                      1051 NYSE EURONEXT - EURONEXT BRUSSELS - DERIVATIVES                         1000      1002 XBRD                      1021 XBRD                   3700 NULL        NULL      2017-01-09 17:26:51.112 NULL
+        100                      1052 NYSE EURONEXT - EURONEXT BRUSSELS                                       1000      1002 XBRU                      1021 XBRU                   3740 NULL        NULL      2017-01-09 17:26:51.113 NULL
+        100                      1053 BERMUDA STOCK EXCHANGE LTD                                              1001      NULL XBDA                      1024 XBDA                   3520 NULL        NULL      2017-01-09 17:26:51.114 NULL
+        100                      1054 BOLSA BOLIVIANA DE VALORES S.A.                                         1001      NULL XBOL                      1026 XBOL                   3640 NULL        NULL      2017-01-09 17:26:51.115 NULL
+        100                      1055 BANJA LUKA STOCK EXCHANGE                                               1001      NULL XBLB                      1027 XBLB                   3600 NULL        NULL      2017-01-09 17:26:51.116 NULL
+        100                      1056 SARAJEVO STOCK EXCHANGE                                                 1001      NULL XSSE                      1027 XSSE                   6420 NULL        NULL      2017-01-09 17:26:51.118 NULL
+        100                      1057 BOTSWANA STOCK EXCHANGE                                                 1001      NULL XBOT                      1028 XBOT                   3670 NULL        NULL      2017-01-09 17:26:51.119 NULL
+        100                      1058 BM&FBOVESPA S.A. - BOLSA DE VALORES, MERCADORIAS E FUTUROS              1001      NULL BVMF                      1030 BVMF                    510 NULL        NULL      2017-01-09 17:26:51.122 NULL
+        100                      1059 CETIP SA - BALCAO ORGANIZADO DE ATIVOS E DERIVATIVOS                    1001      NULL CETI                      1030 CETI                    620 NULL        NULL      2017-01-09 17:26:51.124 NULL
+        100                      1060 BULGARIAN STOCK EXCHANGE                                                1000      1018 XBUL                      1033 XBUL                   3800 NULL        NULL      2017-01-09 17:26:51.125 NULL
+        100                      1061 DOUALA STOCK EXCHANGE                                                   1001      NULL XDSX                      1037 XDSX                   4220 NULL        NULL      2017-01-09 17:26:51.127 NULL
+        100                      1062 CANNEX FINANCIAL EXCHANGE LTS                                           1001      NULL CANX                      1038 CANX                    550 NULL        NULL      2017-01-09 17:26:51.128 NULL
+        100                      1063 CHI-X CANADA ATS                                                        1001      NULL CHIC                      1038 CHIC                    650 NULL        NULL      2017-01-09 17:26:51.129 NULL
+        100                      1064 LIQUIDNET CANADA ATS                                                    1001      NULL LICA                      1038 LICA                   1880 NULL        NULL      2017-01-09 17:26:51.13  NULL
+        100                      1065 MATCH NOW                                                               1001      NULL MATN                      1038 MATN                   1990 NULL        NULL      2017-01-09 17:26:51.131 NULL
+        100                      1066 NATURAL GAS EXCHANGE                                                    1001      NULL NGXC                      1038 NGXC                   2280 NULL        NULL      2017-01-09 17:26:51.134 NULL
+        100                      1067 OMEGA ATS                                                               1001      NULL OMGA                      1038 OMGA                   2430 NULL        NULL      2017-01-09 17:26:51.135 NULL
+        100                      1068 PURE TRADING                                                            1001      NULL PURE                      1038 PURE                   2580 NULL        NULL      2017-01-09 17:26:51.136 NULL
+        100                      1069 ALPHA ATS - TSX-V                                                       1001      NULL TSXV                      1038 TSXV                   3100 NULL        NULL      2017-01-09 17:26:51.137 NULL
+        100                      1070 ALPHA ATS                                                               1001      NULL XATS                      1038 XATS                   3390 NULL        NULL      2017-01-09 17:26:51.138 NULL
+        100                      1071 PERIMETER FINANCIAL CORP. - BLOCKBOOK ATS                               1001      NULL XBBK                      1038 XBBK                   3460 NULL        NULL      2017-01-09 17:26:51.139 NULL
+        100                      1072 CANADIAN NATIONAL STOCK EXCHANGE                                        1001      NULL XCNQ                      1038 XCNQ                   4040 NULL        NULL      2017-01-09 17:26:51.31  NULL
+        100                      1073 MONTREAL CLIMATE EXCHANGE                                               1001      NULL XMOC                      1038 XMOC                   5380 NULL        NULL      2017-01-09 17:26:51.323 NULL
+        100                      1074 THE MONTREAL EXCHANGE / BOURSE DE MONTREAL                              1001      NULL XMOD                      1038 XMOD                   5390 NULL        NULL      2017-01-09 17:26:51.327 NULL
+        100                      1075 TSX VENTURE EXCHANGE - NEX                                              1001      NULL XTNX                      1038 XTNX                   6650 NULL        NULL      2017-01-09 17:26:51.421 NULL
+        100                      1076 TORONTO STOCK EXCHANGE                                                  1001      NULL XTSE                      1038 XTSE                   6690 NULL        NULL      2017-01-09 17:26:51.423 NULL
+        100                      1077 TSX VENTURE EXCHANGE                                                    1001      NULL XTSX                      1038 XTSX                   6700 NULL        NULL      2017-01-09 17:26:51.424 NULL
+        100                      1078 INTERCONTINENTAL EXCHANGE - ICE FUTURES CANADA                          1001      NULL XWCE                      1038 XWCE                   6860 NULL        NULL      2017-01-09 17:26:51.425 NULL
+        100                      1079 CAPE VERDE STOCK EXCHANGE                                               1001      NULL XBVC                      1039 XBVC                   3810 NULL        NULL      2017-01-09 17:26:51.426 NULL
+        100                      1080 CAYMAN ISLANDS STOCK EXCHANGE                                           1001      NULL XCAY                      1040 XCAY                   3870 NULL        NULL      2017-01-09 17:26:51.427 NULL
+        100                      1081 LA BOLSA ELECTRONICA DE CHILE                                           1001      NULL XBCL                      1043 XBCL                   3480 NULL        NULL      2017-01-09 17:26:51.429 NULL
+        100                      1082 SANTIAGO STOCK EXCHANGE                                                 1001      NULL XSGO                      1043 XSGO                   6320 NULL        NULL      2017-01-09 17:26:51.43  NULL
+        100                      1083 CHINA FINANCIAL FUTURES EXCHANGE                                        1001      NULL CCFX                      1044 CCFX                    590 NULL        NULL      2017-01-09 17:26:51.431 NULL
+        100                      1084 SHANGHAI GOLD EXCHANGE                                                  1001      NULL SGEX                      1044 SGEX                   2770 NULL        NULL      2017-01-09 17:26:51.432 NULL
+        100                      1085 CHINA FOREIGN EXCHANGE TRADE SYSTEM                                     1001      NULL XCFE                      1044 XCFE                   3950 NULL        NULL      2017-01-09 17:26:51.433 NULL
+        100                      1086 DALIAN COMMODITY EXCHANGE                                               1001      NULL XDCE                      1044 XDCE                   4130 NULL        NULL      2017-01-09 17:26:51.435 NULL
+        100                      1087 SHANGHAI FUTURES EXCHANGE                                               1001      NULL XSGE                      1044 XSGE                   6310 NULL        NULL      2017-01-09 17:26:51.436 NULL
+        100                      1088 SHENZHEN STOCK EXCHANGE                                                 1001      NULL XSHE                      1044 XSHE                   6330 NULL        NULL      2017-01-09 17:26:51.437 NULL
+        100                      1089 SHANGHAI STOCK EXCHANGE                                                 1001      NULL XSHG                      1044 XSHG                   6340 NULL        NULL      2017-01-09 17:26:51.438 NULL
+        100                      1090 ZHENGZHOU COMMODITY EXCHANGE                                            1001      NULL XZCE                      1044 XZCE                   6910 NULL        NULL      2017-01-09 17:26:51.439 NULL
+        100                      1091 BOLSA DE VALORES DE COLOMBIA                                            1001      NULL XBOG                      1047 XBOG                   3630 NULL        NULL      2017-01-09 17:26:51.44  NULL
+        100                      1092 BOLSA NACIONAL DE VALORES, S.A.                                         1001      NULL XBNV                      1052 XBNV                   3620 NULL        NULL      2017-01-09 17:26:51.441 NULL
+        100                      1093 ZAGREB MONEY AND SHORT TERM SECURITIES MARKET INC                       1001      NULL XTRZ                      1054 XTRZ                   6680 NULL        NULL      2017-01-09 17:26:51.441 NULL
+        100                      1094 ZAGREB STOCK EXCHANGE                                                   1001      NULL XZAG                      1054 XZAG                   6890 NULL        NULL      2017-01-09 17:26:51.442 NULL
+        100                      1095 THE ZAGREB STOCK EXCHANGE MTF                                           1001      NULL XZAM                      1054 XZAM                   6900 NULL        NULL      2017-01-09 17:26:51.443 NULL
+        100                      1096 CYPRUS STOCK EXCHANGE - OTC                                             1001      NULL XCYO                      1056 XCYO                   4100 NULL        NULL      2017-01-09 17:26:51.445 NULL
+        100                      1097 CYPRUS STOCK EXCHANGE                                                   1000      1008 XCYS                      1056 XCYS                   4110 NULL        NULL      2017-01-09 17:26:51.446 NULL
+        100                      1098 MTF - CYPRUS EXCHANGE                                                   1001      NULL XECM                      1056 XECM                   4250 NULL        NULL      2017-01-09 17:26:51.446 NULL
+        100                      1099 SPAD TRADING                                                            1001      NULL SPAD                      1057 SPAD                   2830 NULL        NULL      2017-01-09 17:26:51.447 NULL
+        100                      1100 PRAGUE STOCK EXCHANGE                                                   1000      1009 XPRA                      1057 XPRA                   6000 NULL        NULL      2017-01-09 17:26:51.449 NULL
+        100                      1101 POWER EXCHANGE CENTRAL EUROPE                                           1001      NULL XPXE                      1057 XPXE                   6030 NULL        NULL      2017-01-09 17:26:51.45  NULL
+        100                      1102 RM-SYSTEM CZECH STOCK EXCHANGE (MTF)                                    1001      NULL XRMO                      1057 XRMO                   6090 NULL        NULL      2017-01-09 17:26:51.451 NULL
+        100                      1103 RM-SYSTEM CZECH STOCK EXCHANGE                                          1000      1009 XRMZ                      1057 XRMZ                   6100 NULL        NULL      2017-01-09 17:26:51.452 NULL
+        100                      1104 DANISH AUTHORISED MARKET PLACE LTD.                                     1000      1012 DAMP                      1058 DAMP                    760 NULL        NULL      2017-01-09 17:26:51.453 NULL
+        100                      1105 DANSK OTC                                                               1001      NULL DKTC                      1058 DKTC                    810 NULL        NULL      2017-01-09 17:26:51.455 NULL
+        100                      1106 OMX NORDIC EXCHANGE COPENHAGEN A/S                                      1000      1012 XCSE                      1058 XCSE                   4070 NULL        NULL      2017-01-09 17:26:51.456 NULL
+        100                      1107 FIRST NORTH DENMARK                                                     1001      NULL XFND                      1058 XFND                   4460 NULL        NULL      2017-01-09 17:26:51.457 NULL
+        100                      1108 BOLSA DE VALORES DE LA REPUBLICA DOMINICANA SA.                         1001      NULL XBVR                      1061 XBVR                   3820 NULL        NULL      2017-01-09 17:26:51.458 NULL
+        100                      1109 GUAYAQUIL STOCK EXCHANGE                                                1001      NULL XGUA                      1062 XGUA                   4570 NULL        NULL      2017-01-09 17:26:51.46  NULL
+        100                      1110 QUITO STOCK EXCHANGE                                                    1001      NULL XQUI                      1062 XQUI                   6050 NULL        NULL      2017-01-09 17:26:51.461 NULL
+        100                      1111 EGYPTIAN EXCHANGE                                                       1001      NULL XCAI                      1063 XCAI                   3830 NULL        NULL      2017-01-09 17:26:51.462 NULL
+        100                      1112 EL SALVADOR STOCK EXCHANGE                                              1001      NULL XSVA                      1064 XSVA                   6470 NULL        NULL      2017-01-09 17:26:51.463 NULL
+        100                      1113 FIRST NORTH ESTONIA                                                     1001      NULL FNEE                      1067 FNEE                   1190 NULL        NULL      2017-01-09 17:26:51.464 NULL
+        100                      1114 NASDAQ OMX TALLINN                                                      1000      1013 XTAL                      1067 XTAL                   6540 NULL        NULL      2017-01-09 17:26:51.466 NULL
+        100                      1115 SOUTH PACIFIC STOCK EXCHANGE                                            1001      NULL XSPS                      1071 XSPS                   6400 NULL        NULL      2017-01-09 17:26:51.467 NULL
+        100                      1116 FIRST NORTH FINLAND                                                     1001      NULL FNFI                      1072 FNFI                   1200 NULL        NULL      2017-01-09 17:26:51.468 NULL
+        100                      1117 OMX NORDIC EXCHANGE HELSINKI OY                                         1000      1014 XHEL                      1072 XHEL                   4610 NULL        NULL      2017-01-09 17:26:51.469 NULL
+        100                      1118 NYSE EURONEXT - ALTERNEXT PARIS                                         1001      NULL ALXP                      1073 ALXP                     60 NULL        NULL      2017-01-09 17:26:51.469 NULL
+        100                      1119 EPEX SPOT SE                                                            1001      NULL EPEX                      1073 EPEX                   1010 NULL        NULL      2017-01-09 17:26:51.471 NULL
+        100                      1120 MTS FRANCE SAS                                                          1001      NULL FMTS                      1073 FMTS                   1180 NULL        NULL      2017-01-09 17:26:51.472 NULL
+        100                      1121 ALTERNATIVA FRANCE                                                      1001      NULL XAFR                      1073 XAFR                   3270 NULL        NULL      2017-01-09 17:26:51.473 NULL
+        100                      1122 BLUENEXT - MTF                                                          1001      NULL XBLN                      1073 XBLN                   3610 NULL        NULL      2017-01-09 17:26:51.474 NULL
+        100                      1123 EURONEXT PARIS MATIF                                                    1000      1000 XMAT                      1073 XMAT                   5240 NULL        NULL      2017-01-09 17:26:51.475 NULL
+        100                      1124 NYSE EURONEXT - MARCHE LIBRE PARIS                                      1001      NULL XMLI                      1073 XMLI                   5350 NULL        NULL      2017-01-09 17:26:51.477 NULL
+        100                      1125 EURONEXT PARIS MONEP                                                    1000      1000 XMON                      1073 XMON                   5410 NULL        NULL      2017-01-09 17:26:51.478 NULL
+        100                      1126 NYSE EURONEXT - EURONEXT PARIS                                          1000      1000 XPAR                      1073 XPAR                   5870 NULL        NULL      2017-01-09 17:26:51.479 NULL
+        100                      1127 POWERNEXT                                                               1001      NULL XPOW                      1073 XPOW                   5990 NULL        NULL      2017-01-09 17:26:51.48  NULL
+        100                      1128 GEORGIA STOCK EXCHANGE                                                  1001      NULL XGSE                      1079 XGSE                   4550 NULL        NULL      2017-01-09 17:26:51.482 NULL
+        100                      1129 360T                                                                    1001      NULL 360T                      1080 360T                     10 NULL        NULL      2017-01-09 17:26:51.483 NULL
+        100                      1130 BOERSE BERLIN - REGULIERTER MARKT                                       1000      1001 BERA                      1080 BERA                    260 NULL        NULL      2017-01-09 17:26:51.483 NULL
+        100                      1131 BOERSE BERLIN - FREIVERKEHR                                             1001      NULL BERB                      1080 BERB                    270 NULL        NULL      2017-01-09 17:26:51.484 NULL
+        100                      1132 BOERSE BERLIN - BERLIN SECOND REGULATED MARKET                          1000      1001 BERC                      1080 BERC                    280 NULL        NULL      2017-01-09 17:26:51.485 NULL
+        100                      1133 DEUTSCHE BANK OFF EXCHANGE TRADING                                      1001      NULL DBOX                      1080 DBOX                    780 NULL        NULL      2017-01-09 17:26:51.486 NULL
+        100                      1134 BOERSE DUESSELDORF - REGULIERTER MARKT                                  1000      1001 DUSA                      1080 DUSA                    840 NULL        NULL      2017-01-09 17:26:51.487 NULL
+        100                      1135 BOERSE DUESSELDORF - FREIVERKEHR                                        1001      NULL DUSB                      1080 DUSB                    850 NULL        NULL      2017-01-09 17:26:51.488 NULL
+        100                      1136 BOERSE DUESSELDORF - QUOTRIX - REGULIERTER MARKT                        1000      1001 DUSC                      1080 DUSC                    860 NULL        NULL      2017-01-09 17:26:51.489 NULL
+        100                      1137 BOERSE DUESSELDORF - QUOTRIX MTF                                        1001      NULL DUSD                      1080 DUSD                    870 NULL        NULL      2017-01-09 17:26:51.49  NULL
+        100                      1138 EUREX CLEARING AG                                                       1001      NULL ECAG                      1080 ECAG                    880 NULL        NULL      2017-01-09 17:26:51.492 NULL
+        100                      1139 BOERSE BERLIN EQUIDUCT TRADING - REGULIERTER MARKT                      1000      1001 EQTA                      1080 EQTA                   1020 NULL        NULL      2017-01-09 17:26:51.493 NULL
+        100                      1140 BOERSE BERLIN EQUIDUCT TRADING - BERLIN SECOND REGULATED MARKET         1000      1001 EQTB                      1080 EQTB                   1030 NULL        NULL      2017-01-09 17:26:51.58  NULL
+        100                      1141 BOERSE BERLIN EQUIDUCT TRADING - FREIVERKEHR                            1001      NULL EQTC                      1080 EQTC                   1040 NULL        NULL      2017-01-09 17:26:51.589 NULL
+        100                      1142 EUWAX                                                                   1001      NULL EUWX                      1080 EUWX                   1080 NULL        NULL      2017-01-09 17:26:51.592 NULL
+        100                      1143 BOERSE FRANKFURT - REGULIERTER MARKT                                    1000      1001 FRAA                      1080 FRAA                   1240 NULL        NULL      2017-01-09 17:26:51.595 NULL
+        100                      1144 BOERSE FRANKFURT - FREIVERKEHR                                          1001      NULL FRAB                      1080 FRAB                   1250 NULL        NULL      2017-01-09 17:26:51.598 NULL
+        100                      1145 MTS DEUTSCHLAND AG                                                      1001      NULL GMTS                      1080 GMTS                   1380 NULL        NULL      2017-01-09 17:26:51.601 NULL
+        100                      1146 BOERSE HAMBURG - REGULIERTER MARKT                                      1000      1001 HAMA                      1080 HAMA                   1420 NULL        NULL      2017-01-09 17:26:51.602 NULL
+        100                      1147 BOERSE HAMBURG - FREIVERKEHR                                            1001      NULL HAMB                      1080 HAMB                   1430 NULL        NULL      2017-01-09 17:26:51.605 NULL
+        100                      1148 BOERSE HANNOVER - REGULIERTER MARKT                                     1000      1001 HANA                      1080 HANA                   1440 NULL        NULL      2017-01-09 17:26:51.608 NULL
+        100                      1149 BOERSE HANNOVER - FREIVERKEHR                                           1001      NULL HANB                      1080 HANB                   1450 NULL        NULL      2017-01-09 17:26:51.609 NULL
+        100                      1150 BOERSE MUENCHEN - REGULIERTER MARKT                                     1000      1001 MUNA                      1080 MUNA                   2180 NULL        NULL      2017-01-09 17:26:51.61  NULL
+        100                      1151 BOERSE MUENCHEN - FREIVERKEHR                                           1001      NULL MUNB                      1080 MUNB                   2190 NULL        NULL      2017-01-09 17:26:51.614 NULL
+        100                      1152 BOERSE MUENCHEN - FREIVERKHER - PLUS - EUROPE                           1001      NULL PLUS                      1080 PLUS                   2560 NULL        NULL      2017-01-09 17:26:51.616 NULL
+        100                      1153 BOERSE STUTTGART - REGULIERTER MARKT                                    1000      1001 STUA                      1080 STUA                   2880 NULL        NULL      2017-01-09 17:26:51.617 NULL
+        100                      1154 BOERSE STUTTGART - FREIVERKEHR                                          1001      NULL STUB                      1080 STUB                   2890 NULL        NULL      2017-01-09 17:26:51.619 NULL
+        100                      1155 BOERSE BERLIN                                                           1001      NULL XBER                      1080 XBER                   3540 NULL        NULL      2017-01-09 17:26:51.62  NULL
+        100                      1156 BOERSE DUESSELDORF                                                      1001      NULL XDUS                      1080 XDUS                   4240 NULL        NULL      2017-01-09 17:26:51.623 NULL
+        100                      1157 EUROPEAN ENERGY EXCHANGE AG                                             1000      1001 XEEE                      1080 XEEE                   4280 NULL        NULL      2017-01-09 17:26:51.625 NULL
+        100                      1158 BOERSE BERLIN EQUIDUCT TRADING                                          1001      NULL XEQT                      1080 XEQT                   4310 NULL        NULL      2017-01-09 17:26:51.627 NULL
+        100                      1159 XETRA - REGULIERTER MARKT                                               1000      1001 XETA                      1080 XETA                   4320 NULL        NULL      2017-01-09 17:26:51.629 NULL
+        100                      1160 XETRA - FREIVERKEHR                                                     1001      NULL XETB                      1080 XETB                   4330 NULL        NULL      2017-01-09 17:26:51.63  NULL
+        100                      1161 XETRA INTERNATIONAL MARKET - REGULATED MARKET                           1000      1001 XETC                      1080 XETC                   4340 NULL        NULL      2017-01-09 17:26:51.633 NULL
+        100                      1162 XETRA INTERNATIONAL MARKET - OPEN MARKET                                1001      NULL XETD                      1080 XETD                   4350 NULL        NULL      2017-01-09 17:26:51.635 NULL
+        100                      1163 XETRA INTERNATIONAL MARKET                                              1001      NULL XETI                      1080 XETI                   4360 NULL        NULL      2017-01-09 17:26:51.637 NULL
+        100                      1164 XETRA                                                                   1001      NULL XETR                      1080 XETR                   4370 NULL        NULL      2017-01-09 17:26:51.638 NULL
+        100                      1165 EUREX BONDS                                                             1001      NULL XEUB                      1080 XEUB                   4380 NULL        NULL      2017-01-09 17:26:51.64  NULL
+        100                      1166 EUREX REPO GMBH                                                         1001      NULL XEUP                      1080 XEUP                   4420 NULL        NULL      2017-01-09 17:26:51.643 NULL
+        100                      1167 EUREX DEUTSCHLAND                                                       1000      1001 XEUR                      1080 XEUR                   4430 NULL        NULL      2017-01-09 17:26:51.645 NULL
+        100                      1168 DEUTSCHE BOERSE AG                                                      1001      NULL XFRA                      1080 XFRA                   4480 NULL        NULL      2017-01-09 17:26:51.646 NULL
+        100                      1169 TRADEGATE EXCHANGE - FREIVERKEHR                                        1001      NULL XGAT                      1080 XGAT                   4490 NULL        NULL      2017-01-09 17:26:51.648 NULL
+        100                      1170 TRADEGATE EXCHANGE - REGULIERTER MARKT                                  1000      1001 XGRM                      1080 XGRM                   4540 NULL        NULL      2017-01-09 17:26:51.65  NULL
+        100                      1171 HANSEATISCHE WERTPAPIERBOERSE HAMBURG                                   1001      NULL XHAM                      1080 XHAM                   4580 NULL        NULL      2017-01-09 17:26:51.652 NULL
+        100                      1172 NIEDERSAECHSISCHE BOERSE ZU HANNOVER                                    1001      NULL XHAN                      1080 XHAN                   4590 NULL        NULL      2017-01-09 17:26:51.653 NULL
+        100                      1173 RISK MANAGEMENT EXCHANGE                                                1001      NULL XHCE                      1080 XHCE                   4600 NULL        NULL      2017-01-09 17:26:51.655 NULL
+        100                      1174 INVESTRO                                                                1001      NULL XINV                      1080 XINV                   4750 NULL        NULL      2017-01-09 17:26:51.657 NULL
+        100                      1175 BOERSE MUENCHEN                                                         1001      NULL XMUN                      1080 XMUN                   5470 NULL        NULL      2017-01-09 17:26:51.658 NULL
+        100                      1176 NEWEX                                                                   1001      NULL XNEW                      1080 XNEW                   5610 NULL        NULL      2017-01-09 17:26:51.661 NULL
+        100                      1177 RTR (REUTERS-REALTIME-DATEN)                                            1001      NULL XRTR                      1080 XRTR                   6150 NULL        NULL      2017-01-09 17:26:51.663 NULL
+        100                      1178 SCOACH EUROPA INTERNATIONAL MARKET 1                                    1001      NULL XSC1                      1080 XSC1                   6220 NULL        NULL      2017-01-09 17:26:51.665 NULL
+        100                      1179 SCOACH EUROPA INTERNATIONAL MARKET 2                                    1001      NULL XSC2                      1080 XSC2                   6230 NULL        NULL      2017-01-09 17:26:51.667 NULL
+        100                      1180 SCOACH EUROPA INTERNATIONAL MARKET 3                                    1001      NULL XSC3                      1080 XSC3                   6240 NULL        NULL      2017-01-09 17:26:51.668 NULL
+        100                      1181 BOERSE STUTTGART                                                        1001      NULL XSTU                      1080 XSTU                   6460 NULL        NULL      2017-01-09 17:26:51.671 NULL
+        100                      1182 ZOBEX                                                                   1001      NULL ZOBX                      1080 ZOBX                   6940 NULL        NULL      2017-01-09 17:26:51.673 NULL
+        100                      1183 GHANA STOCK EXCHANGE                                                    1001      NULL XGHA                      1081 XGHA                   4520 NULL        NULL      2017-01-09 17:26:51.674 NULL
+        100                      1184 ATHENS EXCHANGE ALTERNATIVE MARKET                                      1001      NULL ENAX                      1083 ENAX                    970 NULL        NULL      2017-01-09 17:26:51.676 NULL
+        100                      1185 ELECTRONIC SECONDARY SECURITIES MARKET (HDAT)                           1000      1019 HDAT                      1083 HDAT                   1460 NULL        NULL      2017-01-09 17:26:51.678 NULL
+        100                      1186 HELLENIC EXCHANGE OTC MARKET                                            1001      NULL HOTC                      1083 HOTC                   1510 NULL        NULL      2017-01-09 17:26:51.68  NULL
+        100                      1187 ATHENS EXCHANGE S.A. DERIVATIVES MARKET                                 1000      1019 XADE                      1083 XADE                   3240 NULL        NULL      2017-01-09 17:26:51.682 NULL
+        100                      1188 ATHENS EXCHANGE S.A. CASH MARKET                                        1000      1019 XATH                      1083 XATH                   3380 NULL        NULL      2017-01-09 17:26:51.683 NULL
+        100                      1189 BOLSA DE VALORES NACIONAL SA                                            1001      NULL XGTG                      1088 XGTG                   4560 NULL        NULL      2017-01-09 17:26:51.685 NULL
+        100                      1190 CHANNEL ISLANDS STOCK EXCHANGE                                          1001      NULL XCIE                      1089 XCIE                   4000 NULL        NULL      2017-01-09 17:26:51.686 NULL
+        100                      1191 BOLSA CENTROAMERICANA DE VALORES S.A.                                   1001      NULL XBCV                      1096 XBCV                   3500 NULL        NULL      2017-01-09 17:26:51.689 NULL
+        100                      1192 DEUTSCHE BANK HONG KONG ATS                                             1001      NULL DBHK                      1097 DBHK                    770 NULL        NULL      2017-01-09 17:26:51.691 NULL
+        100                      1193 E-OTC                                                                   1001      NULL EOTC                      1097 EOTC                   1000 NULL        NULL      2017-01-09 17:26:51.692 NULL
+        100                      1194 HONG KONG MERCANTILE EXCHANGE                                           1001      NULL HKME                      1097 HKME                   1480 NULL        NULL      2017-01-09 17:26:51.693 NULL
+        100                      1195 CHINESE GOLD & SILVER EXCHANGE SOCIETY                                  1001      NULL XCGS                      1097 XCGS                   3970 NULL        NULL      2017-01-09 17:26:51.694 NULL
+        100                      1196 HONG KONG GROWTH ENTERPRISES MARKET                                     1001      NULL XGEM                      1097 XGEM                   4500 NULL        NULL      2017-01-09 17:26:51.698 NULL
+        100                      1197 HONG KONG FUTURES EXCHANGE LTD.                                         1001      NULL XHKF                      1097 XHKF                   4630 NULL        NULL      2017-01-09 17:26:51.699 NULL
+        100                      1198 STOCK EXCHANGE OF HONG KONG LTD                                         1001      NULL XHKG                      1097 XHKG                   4640 NULL        NULL      2017-01-09 17:26:51.701 NULL
+        100                      1199 INSTINET PACIFIC LTD                                                    1001      NULL XIHK                      1097 XIHK                   4700 NULL        NULL      2017-01-09 17:26:51.702 NULL
+        100                      1200 HUNGARIAN POWER EXCHANGE                                                1001      NULL HUPX                      1098 HUPX                   1540 NULL        NULL      2017-01-09 17:26:51.705 NULL
+        100                      1201 QUOTE MTF                                                               1001      NULL QMTF                      1098 QMTF                   2600 NULL        NULL      2017-01-09 17:26:51.706 NULL
+        100                      1202 BUDAPEST STOCK EXCHANGE                                                 1000      1020 XBUD                      1098 XBUD                   3780 NULL        NULL      2017-01-09 17:26:51.708 NULL
+        100                      1203 FIRST NORTH ICELAND                                                     1001      NULL ISEC                      1099 ISEC                   1720 NULL        NULL      2017-01-09 17:26:51.71  NULL
+        100                      1204 NASDAQ OMX ICELAND                                                      1000      1016 XICE                      1099 XICE                   4680 NULL        NULL      2017-01-09 17:26:51.711 NULL
+        100                      1205 INDIAN COMMODITY EXCHANGE LTD.                                          1001      NULL ICXL                      1100 ICXL                   1680 NULL        NULL      2017-01-09 17:26:51.714 NULL
+        100                      1206 INTER-CONNECTED STOCK EXCHANGE OF INDIA LTD                             1001      NULL ISEX                      1100 ISEX                   1730 NULL        NULL      2017-01-09 17:26:51.717 NULL
+        100                      1207 NATIONAL BOARD OF TRADE LIMITED                                         1001      NULL NBOT                      1100 NBOT                   2250 NULL        NULL      2017-01-09 17:26:51.719 NULL
+        100                      1208 NATIONAL MULTI-COMMODITY EXCHANGE OF INDIA                              1001      NULL NMCE                      1100 NMCE                   2300 NULL        NULL      2017-01-09 17:26:51.721 NULL
+        100                      1209 OTC EXCHANGE OF INDIA                                                   1001      NULL OTCX                      1100 OTCX                   2490 NULL        NULL      2017-01-09 17:26:51.723 NULL
+        100                      1210 POWER EXCHANGE INDIA LTD.                                               1001      NULL PXIL                      1100 PXIL                   2590 NULL        NULL      2017-01-09 17:26:51.724 NULL
+        100                      1211 BANGALORE STOCK EXCHANGE LTD                                            1001      NULL XBAN                      1100 XBAN                   3430 NULL        NULL      2017-01-09 17:26:51.728 NULL
+        100                      1212 MUMBAI STOCK EXCHANGE                                                   1001      NULL XBOM                      1100 XBOM                   3650 NULL        NULL      2017-01-09 17:26:51.729 NULL
+        100                      1213 CALCUTTA STOCK EXCHANGE                                                 1001      NULL XCAL                      1100 XCAL                   3840 NULL        NULL      2017-01-09 17:26:51.731 NULL
+        100                      1214 DELHI STOCK EXCHANGE                                                    1001      NULL XDES                      1100 XDES                   4140 NULL        NULL      2017-01-09 17:26:51.733 NULL
+        100                      1215 MULTI COMMODITY EXCHANGE OF INDIA LTD.                                  1001      NULL XIMC                      1100 XIMC                   4730 NULL        NULL      2017-01-09 17:26:51.734 NULL
+        100                      1216 MADRAS STOCK EXCHANGE                                                   1001      NULL XMDS                      1100 XMDS                   5280 NULL        NULL      2017-01-09 17:26:51.735 NULL
+        100                      1217 NATIONAL COMMODITY & DERIVATIVES EXCHANGE LTD                           1001      NULL XNCD                      1100 XNCD                   5540 NULL        NULL      2017-01-09 17:26:51.737 NULL
+        100                      1218 NATIONAL STOCK EXCHANGE OF INDIA                                        1001      NULL XNSE                      1100 XNSE                   5710 NULL        NULL      2017-01-09 17:26:51.739 NULL
+        100                      1219 INDONESIA COMMODITY AND DERIVATIVES EXCHANGE                            1001      NULL ICDX                      1101 ICDX                   1600 NULL        NULL      2017-01-09 17:26:51.74  NULL
+        100                      1220 JAKARTA FUTURES EXCHANGE (BURSA BERJANGKA JAKARTA)                      1001      NULL XBBJ                      1101 XBBJ                   3450 NULL        NULL      2017-01-09 17:26:51.743 NULL
+        100                      1221 INDONESIA STOCK EXCHANGE                                                1001      NULL XIDX                      1101 XIDX                   4690 NULL        NULL      2017-01-09 17:26:51.744 NULL
+        100                      1222 JAKARTA NEGOTIATED BOARD                                                1001      NULL XJNB                      1101 XJNB                   4850 NULL        NULL      2017-01-09 17:26:51.746 NULL
+        100                      1223 TEHRAN STOCK EXCHANGE                                                   1001      NULL XTEH                      1102 XTEH                   6560 NULL        NULL      2017-01-09 17:26:51.747 NULL
+        100                      1224 IRAK STOCK EXCHANGE                                                     1001      NULL XIQS                      1103 XIQS                   4770 NULL        NULL      2017-01-09 17:26:51.749 NULL
+        100                      1225 BAXTER FINANCIAL SERVICES                                               1001      NULL XCDE                      1104 XCDE                   3920 NULL        NULL      2017-01-09 17:26:51.752 NULL
+        100                      1226 IRISH STOCK EXCHANGE - ALL MARKET                                       1000      1021 XDUB                      1104 XDUB                   4230 NULL        NULL      2017-01-09 17:26:51.753 NULL
+        100                      1227 FINEX (NEW YORK AND DUBLIN)                                             1001      NULL XFNX                      1104 XFNX                   4470 NULL        NULL      2017-01-09 17:26:51.755 NULL
+        100                      1228 POSIT                                                                   1001      NULL XPOS                      1104 XPOS                   5980 NULL        NULL      2017-01-09 17:26:51.756 NULL
+        100                      1229 TEL AVIV STOCK EXCHANGE                                                 1001      NULL XTAE                      1106 XTAE                   6510 NULL        NULL      2017-01-09 17:26:51.758 NULL
+        100                      1230 BONDVISION                                                              1000      1006 BOND                      1107 BOND                    420 NULL        NULL      2017-01-09 17:26:51.761 NULL
+        100                      1231 E-MID - E-MIDER MARKET                                                  1001      NULL EMDR                      1107 EMDR                    930 NULL        NULL      2017-01-09 17:26:51.762 NULL
+        100                      1232 E-MID                                                                   1001      NULL EMID                      1107 EMID                    940 NULL        NULL      2017-01-09 17:26:51.764 NULL
+        100                      1233 ELECTRONIC OPEN-END FUNDS AND ETC MARKET                                1000      1006 ETFP                      1107 ETFP                   1050 NULL        NULL      2017-01-09 17:26:51.766 NULL
+        100                      1234 EUROTLX                                                                 1001      NULL ETLX                      1107 ETLX                   1060 NULL        NULL      2017-01-09 17:26:51.767 NULL
+        100                      1235 HI-MTF ORDER DRIVEN                                                     1001      NULL HMOD                      1107 HMOD                   1490 NULL        NULL      2017-01-09 17:26:51.771 NULL
+        100                      1236 HI-MTF                                                                  1001      NULL HMTF                      1107 HMTF                   1500 NULL        NULL      2017-01-09 17:26:51.773 NULL
+        100                      1237 MERCATO ALTERNATIVO DEL CAPITALE                                        1001      NULL MACX                      1107 MACX                   1970 NULL        NULL      2017-01-09 17:26:51.775 NULL
+        100                      1238 MARKET FOR INVESTMENT VEHICULES                                         1000      1006 MIVX                      1107 MIVX                   2040 NULL        NULL      2017-01-09 17:26:51.776 NULL
+        100                      1239 ELECTRONIC BOND MARKET                                                  1000      1006 MOTX                      1107 MOTX                   2060 NULL        NULL      2017-01-09 17:26:51.777 NULL
+        100                      1240 ELECTRONIC SHARE MARKET                                                 1000      1006 MTAA                      1107 MTAA                   2090 NULL        NULL      2017-01-09 17:26:51.78  NULL
+        100                      1241 MTS S.P.A.                                                              1000      1006 MTSC                      1107 MTSC                   2110 NULL        NULL      2017-01-09 17:26:51.782 NULL
+        100                      1242 MTS CORPORATE MARKET                                                    1000      1006 MTSM                      1107 MTSM                   2150 NULL        NULL      2017-01-09 17:26:51.784 NULL
+        100                      1243 SECURITISED DERIVATIVES MARKET                                          1000      1006 SEDX                      1107 SEDX                   2740 NULL        NULL      2017-01-09 17:26:51.786 NULL
+        100                      1244 BOND VISION CORPORATE                                                   1001      NULL SSOB                      1107 SSOB                   2870 NULL        NULL      2017-01-09 17:26:51.787 NULL
+        100                      1245 AIM ITALIA                                                              1001      NULL XAIM                      1107 XAIM                   3280 NULL        NULL      2017-01-09 17:26:51.823 NULL
+        100                      1246 ITALIAN DERIVATIVES MARKET                                              1000      1006 XDMI                      1107 XDMI                   4180 NULL        NULL      2017-01-09 17:26:51.825 NULL
+        100                      1247 GESTORE MERCATO ELETTRICO - ITALIAN POWER EXCHANGE                      1001      NULL XGME                      1107 XGME                   4530 NULL        NULL      2017-01-09 17:26:51.857 NULL
+        100                      1248 EXTRAMOT                                                                1001      NULL XMOT                      1107 XMOT                   5430 NULL        NULL      2017-01-09 17:26:51.859 NULL
+        100                      1249 TLX                                                                     1001      NULL XTLX                      1107 XTLX                   6640 NULL        NULL      2017-01-09 17:26:51.86  NULL
+        100                      1250 BOURSE REGIONALE DES VALEURS MOBILIERES                                 1001      NULL XBRV                      1053 XBRV                   3750 NULL        NULL      2017-01-09 17:26:51.863 NULL
+        100                      1251 JAMAICA STOCK EXCHANGE                                                  1001      NULL XJAM                      1108 XJAM                   4830 NULL        NULL      2017-01-09 17:26:51.865 NULL
+        100                      1252 CHI-X JAPAN                                                             1001      NULL CHIJ                      1109 CHIJ                    670 NULL        NULL      2017-01-09 17:26:51.867 NULL
+        100                      1253 CITI MATCH                                                              1001      NULL CITX                      1109 CITX                    700 NULL        NULL      2017-01-09 17:26:51.869 NULL
+        100                      1254 JAPANCROSSING                                                           1001      NULL JASR                      1109 JASR                   1770 NULL        NULL      2017-01-09 17:26:51.871 NULL
+        100                      1255 KABU.COM PTS                                                            1001      NULL KABU                      1109 KABU                   1780 NULL        NULL      2017-01-09 17:26:51.874 NULL
+        100                      1256 JAPANNEXT PTS                                                           1001      NULL SBIJ                      1109 SBIJ                   2710 NULL        NULL      2017-01-09 17:26:51.876 NULL
+        100                      1257 FUKUOKA STOCK EXCHANGE                                                  1001      NULL XFKA                      1109 XFKA                   4450 NULL        NULL      2017-01-09 17:26:51.877 NULL
+        100                      1258 INSTINET JAPAN                                                          1001      NULL XIJP                      1109 XIJP                   4710 NULL        NULL      2017-01-09 17:26:51.878 NULL
+        100                      1259 OSAKA SECURITIES EXCHANGE JASDAQ                                        1001      NULL XJAS                      1109 XJAS                   4840 NULL        NULL      2017-01-09 17:26:51.879 NULL
+        100                      1260 KANSAI COMMODITIES EXCHANGE                                             1001      NULL XKAC                      1109 XKAC                   4870 NULL        NULL      2017-01-09 17:26:51.887 NULL
+        100                      1261 NAGOYA STOCK EXCHANGE                                                   1001      NULL XNGO                      1109 XNGO                   5630 NULL        NULL      2017-01-09 17:26:51.89  NULL
+        100                      1262 CENTRAL JAPAN COMMODITIES EXCHANGE                                      1001      NULL XNKS                      1109 XNKS                   5660 NULL        NULL      2017-01-09 17:26:51.891 NULL
+        100                      1263 OSAKA SECURITIES EXCHANGE                                               1001      NULL XOSE                      1109 XOSE                   5820 NULL        NULL      2017-01-09 17:26:51.892 NULL
+        100                      1264 OSAKA SECURITIES EXCHANGE J-NET                                         1001      NULL XOSJ                      1109 XOSJ                   5830 NULL        NULL      2017-01-09 17:26:51.894 NULL
+        100                      1265 SAPPORO SECURITIES EXCHANGE                                             1001      NULL XSAP                      1109 XSAP                   6190 NULL        NULL      2017-01-09 17:26:51.896 NULL
+        100                      1266 TOKYO AIM                                                               1001      NULL XTAM                      1109 XTAM                   6550 NULL        NULL      2017-01-09 17:26:51.897 NULL
+        100                      1267 TOKYO FINANCIAL  EXCHANGE                                               1001      NULL XTFF                      1109 XTFF                   6570 NULL        NULL      2017-01-09 17:26:51.898 NULL
+        100                      1268 TOKYO STOCK EXCHANGE - TOSTNET-1                                        1001      NULL XTK1                      1109 XTK1                   6590 NULL        NULL      2017-01-09 17:26:51.899 NULL
+        100                      1269 TOKYO STOCK EXCHANGE - TOSTNET-2                                        1001      NULL XTK2                      1109 XTK2                   6600 NULL        NULL      2017-01-09 17:26:51.9   NULL
+        100                      1270 TOKYO GRAIN EXCHANGE                                                    1001      NULL XTKO                      1109 XTKO                   6610 NULL        NULL      2017-01-09 17:26:51.901 NULL
+        100                      1271 TOKYO STOCK EXCHANGE                                                    1001      NULL XTKS                      1109 XTKS                   6620 NULL        NULL      2017-01-09 17:26:51.902 NULL
+        100                      1272 TOKYO COMMODITY EXCHANGE                                                1001      NULL XTKT                      1109 XTKT                   6630 NULL        NULL      2017-01-09 17:26:51.903 NULL
+        100                      1273 AMMAN STOCK EXCHANGE                                                    1001      NULL XAMM                      1111 XAMM                   3310 NULL        NULL      2017-01-09 17:26:51.905 NULL
+        100                      1274 ETS EURASIAN TRADING SYSTEM COMMODITY EXCHANGE                          1001      NULL ETSC                      1112 ETSC                   1070 NULL        NULL      2017-01-09 17:26:51.906 NULL
+        100                      1275 KAZAKHSTAN STOCK EXCHANGE                                               1001      NULL XKAZ                      1112 XKAZ                   4890 NULL        NULL      2017-01-09 17:26:51.916 NULL
+        100                      1276 NAIROBI STOCK EXCHANGE                                                  1001      NULL XNAI                      1113 XNAI                   5510 NULL        NULL      2017-01-09 17:26:51.924 NULL
+        100                      1277 KOREA FREEBOARD MARKET                                                  1001      NULL XKFB                      1116 XKFB                   4920 NULL        NULL      2017-01-09 17:26:51.929 NULL
+        100                      1278 KOREA EXCHANGE (FUTURES MARKET)                                         1001      NULL XKFE                      1116 XKFE                   4930 NULL        NULL      2017-01-09 17:26:51.933 NULL
+        100                      1279 KOREA EXCHANGE (KOSDAQ)                                                 1001      NULL XKOS                      1116 XKOS                   4990 NULL        NULL      2017-01-09 17:26:51.938 NULL
+        100                      1280 KOREA EXCHANGE (STOCK MARKET)                                           1001      NULL XKRX                      1116 XKRX                   5000 NULL        NULL      2017-01-09 17:26:51.939 NULL
+        100                      1281 KUWAIT STOCK EXCHANGE                                                   1001      NULL XKUW                      1117 XKUW                   5020 NULL        NULL      2017-01-09 17:26:51.94  NULL
+        100                      1282 KYRGYZ STOCK EXCHANGE                                                   1001      NULL XKSE                      1118 XKSE                   5010 NULL        NULL      2017-01-09 17:26:51.941 NULL
+        100                      1283 FIRST NORTH LATVIA                                                      1001      NULL FNLV                      1120 FNLV                   1220 NULL        NULL      2017-01-09 17:26:51.942 NULL
+        100                      1284 NASDAQ OMX RIGA                                                         1000      1010 XRIS                      1120 XRIS                   6080 NULL        NULL      2017-01-09 17:26:51.942 NULL
+        100                      1285 BOURSE DE BEYROUTH - BEIRUT STOCK EXCHANGE                              1001      NULL XBEY                      1121 XBEY                   3560 NULL        NULL      2017-01-09 17:26:51.943 NULL
+        100                      1286 LIBYAN STOCK MARKET                                                     1001      NULL XLSM                      1124 XLSM                   5150 NULL        NULL      2017-01-09 17:26:51.944 NULL
+        100                      1287 BALTPOOL                                                                1001      NULL BAPX                      1126 BAPX                    170 NULL        NULL      2017-01-09 17:26:51.946 NULL
+        100                      1288 FIRST NORTH LITHUANIA                                                   1001      NULL FNLT                      1126 FNLT                   1210 NULL        NULL      2017-01-09 17:26:51.948 NULL
+        100                      1289 NASDAQ OMX BALTIC                                                       1001      NULL NASB                      1126 NASB                   2230 NULL        NULL      2017-01-09 17:26:51.949 NULL
+        100                      1290 NASDAQ OMX VILNIUS                                                      1000      1023 XLIT                      1126 XLIT                   5110 NULL        NULL      2017-01-09 17:26:51.95  NULL
+        100                      1291 FINESTI S.A.                                                            1001      NULL CCLX                      1127 CCLX                    600 NULL        NULL      2017-01-09 17:26:51.951 NULL
+        100                      1292 EURO MTF                                                                1001      NULL EMTF                      1127 EMTF                    950 NULL        NULL      2017-01-09 17:26:51.952 NULL
+        100                      1293 LUXEMBOURG STOCK EXCHANGE                                               1000      1007 XLUX                      1127 XLUX                   5170 NULL        NULL      2017-01-09 17:26:51.954 NULL
+        100                      1294 VESTIMA+                                                                1001      NULL XVES                      1127 XVES                   6810 NULL        NULL      2017-01-09 17:26:51.955 NULL
+        100                      1295 MACEDONIAN STOCK EXCHANGE                                               1001      NULL XMAE                      1129 XMAE                   5200 NULL        NULL      2017-01-09 17:26:51.956 NULL
+        100                      1296 MARCHE INTERBANCAIRE DES DEVISES M.I.D.                                 1001      NULL XMDG                      1130 XMDG                   5270 NULL        NULL      2017-01-09 17:26:51.957 NULL
+        100                      1297 MALAWI STOCK EXCHANGE                                                   1001      NULL XMSW                      1131 XMSW                   5450 NULL        NULL      2017-01-09 17:26:51.958 NULL
+        100                      1298 ACE MARKET                                                              1001      NULL MESQ                      1132 MESQ                   2010 NULL        NULL      2017-01-09 17:26:51.96  NULL
+        100                      1299 BURSA MALAYSIA                                                          1001      NULL XKLS                      1132 XKLS                   4980 NULL        NULL      2017-01-09 17:26:51.961 NULL
+        100                      1300 LABUAN INTERNATIONAL FINANCIAL EXCHANGE                                 1001      NULL XLFX                      1132 XLFX                   5070 NULL        NULL      2017-01-09 17:26:51.962 NULL
+        100                      1301 RINGGIT BOND MARKET                                                     1001      NULL XRBM                      1132 XRBM                   6070 NULL        NULL      2017-01-09 17:26:51.963 NULL
+        100                      1302 MALTA STOCK EXCHANGE                                                    1000      1024 XMAL                      1135 XMAL                   5210 NULL        NULL      2017-01-09 17:26:51.964 NULL
+        100                      1303 STOCK EXCHANGE OF MAURITIUS LTD                                         1001      NULL XMAU                      1139 XMAU                   5250 NULL        NULL      2017-01-09 17:26:51.966 NULL
+        100                      1304 MERCADO MEXICANO DE DERIVADOS                                           1001      NULL XEMD                      1141 XEMD                   4300 NULL        NULL      2017-01-09 17:26:51.967 NULL
+        100                      1305 BOLSA MEXICANA DE VALORES (MEXICAN STOCK EXCHANGE)                      1001      NULL XMEX                      1141 XMEX                   5320 NULL        NULL      2017-01-09 17:26:52.1   NULL
+        100                      1306 MOLDOVA STOCK EXCHANGE                                                  1001      NULL XMOL                      1143 XMOL                   5400 NULL        NULL      2017-01-09 17:26:52.109 NULL
+        100                      1307 MONGOLIAN STOCK EXCHANGE                                                1001      NULL XULA                      1145 XULA                   6780 NULL        NULL      2017-01-09 17:26:52.112 NULL
+        100                      1308 MONTENEGRO STOCK EXCHANGE                                               1001      NULL XMNX                      1146 XMNX                   5370 NULL        NULL      2017-01-09 17:26:52.113 NULL
+        100                      1309 CASABLANCA STOCK EXCHANGE                                               1001      NULL XCAS                      1148 XCAS                   3860 NULL        NULL      2017-01-09 17:26:52.115 NULL
+        100                      1310 MAPUTO STOCK  EXCHANGE                                                  1001      NULL XMAP                      1149 XMAP                   5230 NULL        NULL      2017-01-09 17:26:52.123 NULL
+        100                      1311 NAMIBIAN STOCK EXCHANGE                                                 1001      NULL XNAM                      1151 XNAM                   5520 NULL        NULL      2017-01-09 17:26:52.142 NULL
+        100                      1312 NEPAL STOCK EXCHANGE                                                    1001      NULL XNEP                      1153 XNEP                   5600 NULL        NULL      2017-01-09 17:26:52.214 NULL
+        100                      1313 NEW ZEALAND FUTURES & OPTIONS                                           1001      NULL NZFX                      1157 NZFX                   2400 NULL        NULL      2017-01-09 17:26:52.223 NULL
+        100                      1314 NEW ZEALAND EXCHANGE LTD                                                1001      NULL XNZE                      1157 XNZE                   5760 NULL        NULL      2017-01-09 17:26:52.652 NULL
+        100                      1315 BOLSA DE VALORES DE NICARAGUA                                           1001      NULL XMAN                      1158 XMAN                   5220 NULL        NULL      2017-01-09 17:26:52.652 NULL
+        100                      1316 NIGERIAN STOCK EXCHANGE                                                 1001      NULL XNSA                      1160 XNSA                   5700 NULL        NULL      2017-01-09 17:26:52.654 NULL
+        100                      1317 FISH POOL ASA                                                           1000      1022 FISH                      1164 FISH                   1170 NULL        NULL      2017-01-09 17:26:52.655 NULL
+        100                      1318 FISHEX                                                                  1001      NULL FSHX                      1164 FSHX                   1270 NULL        NULL      2017-01-09 17:26:52.656 NULL
+        100                      1319 ICAP ENERGY AS                                                          1001      NULL ICAS                      1164 ICAS                   1580 NULL        NULL      2017-01-09 17:26:52.658 NULL
+        100                      1320 NORD POOL ASA                                                           1000      1022 NORX                      1164 NORX                   2340 NULL        NULL      2017-01-09 17:26:52.659 NULL
+        100                      1321 NORWEGIAN OVER THE COUNTER MARKET                                       1001      NULL NOTC                      1164 NOTC                   2350 NULL        NULL      2017-01-09 17:26:52.66  NULL
+        100                      1322 INTERNATIONAL MARTIME EXCHANGE                                          1000      1022 XIMA                      1164 XIMA                   4720 NULL        NULL      2017-01-09 17:26:52.661 NULL
+        100                      1323 OSLO BORS ALTERNATIVE BOND MARKET                                       1001      NULL XOAM                      1164 XOAM                   5770 NULL        NULL      2017-01-09 17:26:52.662 NULL
+        100                      1324 OSLO AXESS                                                              1000      1022 XOAS                      1164 XOAS                   5780 NULL        NULL      2017-01-09 17:26:52.663 NULL
+        100                      1325 OSLO BORS ASA                                                           1000      1022 XOSL                      1164 XOSL                   5840 NULL        NULL      2017-01-09 17:26:52.664 NULL
+        100                      1326 MUSCAT SECURITIES MARKET                                                1001      NULL XMUS                      1165 XMUS                   5480 NULL        NULL      2017-01-09 17:26:52.665 NULL
+        100                      1327 NATIONAL COMMODITY EXCHANGE LIMITED                                     1001      NULL NCEL                      1166 NCEL                   2260 NULL        NULL      2017-01-09 17:26:52.666 NULL
+        100                      1328 ISLAMABAD STOCK EXCHANGE                                                1001      NULL XISL                      1166 XISL                   4800 NULL        NULL      2017-01-09 17:26:52.667 NULL
+        100                      1329 KARACHI STOCK EXCHANGE (GUARANTEE) LIMITED                              1001      NULL XKAR                      1166 XKAR                   4880 NULL        NULL      2017-01-09 17:26:52.668 NULL
+        100                      1330 LAHORE STOCK EXCHANGE                                                   1001      NULL XLAH                      1166 XLAH                   5030 NULL        NULL      2017-01-09 17:26:52.669 NULL
+        100                      1331 PALESTINE SECURITIES EXCHANGE                                           1001      NULL XPAE                      1168 XPAE                   5860 NULL        NULL      2017-01-09 17:26:52.671 NULL
+        100                      1332 BOLSA DE VALORES DE PANAMA, S.A.                                        1001      NULL XPTY                      1169 XPTY                   6020 NULL        NULL      2017-01-09 17:26:52.672 NULL
+        100                      1333 PORT MORESBY STOCK EXCHANGE                                             1001      NULL XPOM                      1170 XPOM                   5960 NULL        NULL      2017-01-09 17:26:52.673 NULL
+        100                      1334 BOLSA DE VALORES Y PRODUCTOS DE ASUNCION SA                             1001      NULL XVPA                      1171 XVPA                   6820 NULL        NULL      2017-01-09 17:26:52.674 NULL
+        100                      1335 BOLSA DE VALORES DE LIMA                                                1001      NULL XLIM                      1172 XLIM                   5090 NULL        NULL      2017-01-09 17:26:52.675 NULL
+        100                      1336 PHILIPPINE DEALING AND EXCHANGE CORP                                    1001      NULL PDEX                      1173 PDEX                   2500 NULL        NULL      2017-01-09 17:26:52.678 NULL
+        100                      1337 PHILIPPINE STOCK EXCHANGE, INC.                                         1001      NULL XPHS                      1173 XPHS                   5920 NULL        NULL      2017-01-09 17:26:52.679 NULL
+        100                      1338 BONDSPOT MTF                                                            1001      NULL BOSP                      1175 BOSP                    440 NULL        NULL      2017-01-09 17:26:52.68  NULL
+        100                      1339 BONDSPOT S.A.                                                           1001      NULL CETO                      1175 CETO                    630 NULL        NULL      2017-01-09 17:26:52.681 NULL
+        100                      1340 TREASURY BONDSPOT POLAND                                                1001      NULL MTSP                      1175 MTSP                   2160 NULL        NULL      2017-01-09 17:26:52.682 NULL
+        100                      1341 TOWAROWA GIELDA ENERGII S.A. (POLISH POWER EXCHANGE)                    1001      NULL PLPX                      1175 PLPX                   2550 NULL        NULL      2017-01-09 17:26:52.684 NULL
+        100                      1342 BONDSPOT SECURITIES MARKET                                              1000      1027 RPWC                      1175 RPWC                   2680 NULL        NULL      2017-01-09 17:26:52.685 NULL
+        100                      1343 NEW CONNECT                                                             1001      NULL XNCO                      1175 XNCO                   5560 NULL        NULL      2017-01-09 17:26:52.686 NULL
+        100                      1344 WARSAW STOCK EXCHANGE                                                   1000      1027 XWAR                      1175 XWAR                   6840 NULL        NULL      2017-01-09 17:26:52.687 NULL
+        100                      1345 NYSE EURONEXT - EASYNEXT LISBON                                         1001      NULL ENXL                      1176 ENXL                    990 NULL        NULL      2017-01-09 17:26:52.688 NULL
+        100                      1346 MEDIP  (MTS PORTUGAL SGMR, SA)                                          1000      1003 MDIP                      1176 MDIP                   2000 NULL        NULL      2017-01-09 17:26:52.689 NULL
+        100                      1347 NYSE EURONEXT - MERCADO DE FUTUROS E OPÃ‡Ã•ES                           1000      1003 MFOX                      1176 MFOX                   2030 NULL        NULL      2017-01-09 17:26:52.69  NULL
+        100                      1348 OPERADOR DE MERCADO IBERICO DE ENERGIA - PORTUGAL                       1000      1003 OMIP                      1176 OMIP                   2440 NULL        NULL      2017-01-09 17:26:52.691 NULL
+        100                      1349 PEX-PRIVATE EXCHANGE                                                    1001      NULL OPEX                      1176 OPEX                   2460 NULL        NULL      2017-01-09 17:26:52.692 NULL
+        100                      1350 NYSE EURONEXT - MARKET WITHOUT QUOTATIONS LISBON                        1001      NULL WQXL                      1176 WQXL                   3220 NULL        NULL      2017-01-09 17:26:52.693 NULL
+        100                      1351 NYSE EURONEXT - EURONEXT LISBON                                         1000      1003 XLIS                      1176 XLIS                   5100 NULL        NULL      2017-01-09 17:26:52.694 NULL
+        100                      1352 QATAR EXCHANGE                                                          1001      NULL DSMD                      1178 DSMD                    820 NULL        NULL      2017-01-09 17:26:52.695 NULL
+        100                      1353 DERIVATIVES REGULATED MARKET - BMFMS                                    1000      1005 BMFM                      1180 BMFM                    370 NULL        NULL      2017-01-09 17:26:52.696 NULL
+        100                      1354 SIBIU MONETARY- FINANCIAL AND COMMODITIES EXCHANGE                      1001      NULL BMFX                      1180 BMFX                    380 NULL        NULL      2017-01-09 17:26:52.697 NULL
+        100                      1355 SPOT REGULATED MARKET - BMFMS                                           1000      1005 SBMF                      1180 SBMF                   2720 NULL        NULL      2017-01-09 17:26:52.698 NULL
+        100                      1356 ROMANIAN  COMMODITIES EXCHANGE                                          1001      NULL XBRM                      1180 XBRM                   3710 NULL        NULL      2017-01-09 17:26:52.699 NULL
+        100                      1357 DERIVATIVES REGULATED MARKET - BVB                                      1000      1005 XBSD                      1180 XBSD                   3760 NULL        NULL      2017-01-09 17:26:52.7   NULL
+        100                      1358 SPOT REGULATED MARKET - BVB                                             1000      1005 XBSE                      1180 XBSE                   3770 NULL        NULL      2017-01-09 17:26:52.701 NULL
+        100                      1359 RASDAQ                                                                  1001      NULL XRAS                      1180 XRAS                   6060 NULL        NULL      2017-01-09 17:26:52.702 NULL
+        100                      1360 ROMANIAN POWER MARKET                                                   1001      NULL XRPM                      1180 XRPM                   6140 NULL        NULL      2017-01-09 17:26:52.704 NULL
+        100                      1361 INTERNATIONAL STOCK EXCHANGE SAINT-PETERSBOURG                          1001      NULL IXSP                      1181 IXSP                   1750 NULL        NULL      2017-01-09 17:26:52.705 NULL
+        100                      1362 MOSCOW ENERGY EXCHANGE                                                  1001      NULL RPDX                      1181 RPDX                   2670 NULL        NULL      2017-01-09 17:26:52.706 NULL
+        100                      1363 RUSSIAN TRADING SYSTEM STOCK EXCHANGE                                   1001      NULL RTSX                      1181 RTSX                   2700 NULL        NULL      2017-01-09 17:26:52.707 NULL
+        100                      1364 SAINT-PETERSBURG INTERNATIONAL MERCANTILE EXCHANGE (SPIMEX)             1001      NULL SPIM                      1181 SPIM                   2850 NULL        NULL      2017-01-09 17:26:52.71  NULL
+        100                      1365 REGIONAL EXCHANGE CENTRE - MICEX FAR EAST                               1001      NULL XAPI                      1181 XAPI                   3330 NULL        NULL      2017-01-09 17:26:52.713 NULL
+        100                      1366 MOSCOW INTERBANK CURRENCY EXCHANGE                                      1001      NULL XMIC                      1181 XMIC                   5340 NULL        NULL      2017-01-09 17:26:52.714 NULL
+        100                      1367 MOSCOW STOCK EXCHANGE                                                   1001      NULL XMOS                      1181 XMOS                   5420 NULL        NULL      2017-01-09 17:26:52.715 NULL
+        100                      1368 SAINT PETERSBURG EXCHANGE                                               1001      NULL XPET                      1181 XPET                   5890 NULL        NULL      2017-01-09 17:26:52.716 NULL
+        100                      1369 SAINT-PETERSBURG CURRENCY EXCHANGE                                      1001      NULL XPIC                      1181 XPIC                   5930 NULL        NULL      2017-01-09 17:26:52.716 NULL
+        100                      1370 REGIONAL EXCHANGE CENTRE - MICEX SOUTH                                  1001      NULL XROV                      1181 XROV                   6120 NULL        NULL      2017-01-09 17:26:52.719 NULL
+        100                      1371 INTERNET DIRECT-ACCESS EXCHANGE                                         1001      NULL XRUS                      1181 XRUS                   6160 NULL        NULL      2017-01-09 17:26:52.719 NULL
+        100                      1372 SAMARA CURRENCY INTERBANK EXCHANGE                                      1001      NULL XSAM                      1181 XSAM                   6180 NULL        NULL      2017-01-09 17:26:52.72  NULL
+        100                      1373 SIBERIAN EXCHANGE                                                       1001      NULL XSIB                      1181 XSIB                   6350 NULL        NULL      2017-01-09 17:26:52.721 NULL
+        100                      1374 SIBERIAN INTERBANK CURRENCY EXCHANGE                                    1001      NULL XSIC                      1181 XSIC                   6360 NULL        NULL      2017-01-09 17:26:52.722 NULL
+        100                      1375 RWANDA OTC MARKET                                                       1001      NULL ROTC                      1182 ROTC                   2660 NULL        NULL      2017-01-09 17:26:52.724 NULL
+        100                      1376 EASTERN CARIBBEAN SECURITIES EXCHANGE                                   1001      NULL XECS                      1185 XECS                   4260 NULL        NULL      2017-01-09 17:26:52.725 NULL
+        100                      1377 SAUDI STOCK EXCHANGE                                                    1001      NULL XSAU                      1193 XSAU                   6210 NULL        NULL      2017-01-09 17:26:52.726 NULL
+        100                      1378 BELGRADE STOCK EXCHANGE                                                 1001      NULL XBEL                      1195 XBEL                   3530 NULL        NULL      2017-01-09 17:26:52.727 NULL
+        100                      1379 CHI-EAST                                                                1001      NULL CHIE                      1198 CHIE                    660 NULL        NULL      2017-01-09 17:26:52.728 NULL
+        100                      1380 JOINT ASIAN DERIVATIVES EXCHANGE                                        1001      NULL JADX                      1198 JADX                   1760 NULL        NULL      2017-01-09 17:26:52.73  NULL
+        100                      1381 SINGAPORE MERCANTILE EXCHANGE PTE LTD                                   1001      NULL SMEX                      1198 SMEX                   2810 NULL        NULL      2017-01-09 17:26:52.731 NULL
+        100                      1382 SINGAPORE CATALIST MARKET                                               1001      NULL XSCA                      1198 XSCA                   6250 NULL        NULL      2017-01-09 17:26:52.732 NULL
+        100                      1383 SINGAPORE COMMODITY EXCHANGE                                            1001      NULL XSCE                      1198 XSCE                   6260 NULL        NULL      2017-01-09 17:26:52.733 NULL
+        100                      1384 SINGAPORE CENTRAL LIMIT ORDER BOOK INTERNATIONAL                        1001      NULL XSCL                      1198 XSCL                   6270 NULL        NULL      2017-01-09 17:26:52.735 NULL
+        100                      1385 SINGAPORE EXCHANGE                                                      1001      NULL XSES                      1198 XSES                   6280 NULL        NULL      2017-01-09 17:26:52.735 NULL
+        100                      1386 SINGAPORE EXCHANGE DERIVATIVES CLEARING LIMITED                         1001      NULL XSIM                      1198 XSIM                   6370 NULL        NULL      2017-01-09 17:26:52.736 NULL
+        100                      1387 BRATISLAVA STOCK EXCHANGE                                               1000      1025 XBRA                      1199 XBRA                   3690 NULL        NULL      2017-01-09 17:26:52.738 NULL
+        100                      1388 LJUBLJANA STOCK EXCHANGE (OFFICIAL MARKET)                              1000      1028 XLJU                      1200 XLJU                   5120 NULL        NULL      2017-01-09 17:26:52.739 NULL
+        100                      1389 BSP REGIONAL ENERGY EXCHANGE - SOUTH POOL                               1001      NULL XSOP                      1200 XSOP                   6390 NULL        NULL      2017-01-09 17:26:52.74  NULL
+        100                      1390 ALTERNATIVE EXCHANGE                                                    1001      NULL ALTX                      1203 ALTX                     30 NULL        NULL      2017-01-09 17:26:52.741 NULL
+        100                      1391 BOND EXCHANGE OF SOUTH AFRICA                                           1001      NULL XBES                      1203 XBES                   3550 NULL        NULL      2017-01-09 17:26:52.742 NULL
+        100                      1392 JSE SECURITIES EXCHANGE                                                 1001      NULL XJSE                      1203 XJSE                   4860 NULL        NULL      2017-01-09 17:26:52.743 NULL
+        100                      1393 SOUTH AFRICAN FUTURES EXCHANGE                                          1001      NULL XSAF                      1203 XSAF                   6170 NULL        NULL      2017-01-09 17:26:52.744 NULL
+        100                      1394 SOUTH AFRICAN FUTURES EXCHANGE - AGRICULTURAL MARKET DIVISION           1001      NULL XSFA                      1203 XSFA                   6290 NULL        NULL      2017-01-09 17:26:52.748 NULL
+        100                      1395 JSE YIELD-X                                                             1001      NULL YLDX                      1203 YLDX                   6930 NULL        NULL      2017-01-09 17:26:52.749 NULL
+        100                      1396 MERCADO ALTERNATIVO BURSATIL                                            1001      NULL MABX                      1205 MABX                   1960 NULL        NULL      2017-01-09 17:26:52.751 NULL
+        100                      1397 OPERADOR DE MERCADO IBERICO DE ENERGIA - SPAIN                          1001      NULL OMEL                      1205 OMEL                   2420 NULL        NULL      2017-01-09 17:26:52.751 NULL
+        100                      1398 SEND - SISTEMA ELECTRONICO DE NEGOCIACION DE DEUDA                      1001      NULL SEND                      1205 SEND                   2750 NULL        NULL      2017-01-09 17:26:52.752 NULL
+        100                      1399 MTS SPAIN, S.A.                                                         1001      NULL SMTS                      1205 SMTS                   2820 NULL        NULL      2017-01-09 17:26:52.753 NULL
+        100                      1400 BARCELONA STOCK EXCHANGE                                                1000      1004 XBAR                      1205 XBAR                   3440 NULL        NULL      2017-01-09 17:26:52.754 NULL
+        100                      1401 BOLSA DE VALORES DE BILBAO                                              1000      1004 XBIL                      1205 XBIL                   3570 NULL        NULL      2017-01-09 17:26:52.757 NULL
+        100                      1402 CADE - MERCADO DE DEUDA PUBLICA ANOTADA                                 1000      1004 XDPA                      1205 XDPA                   4190 NULL        NULL      2017-01-09 17:26:52.758 NULL
+        100                      1403 AIAF - MERCADO DE RENTA FIJA                                            1000      1004 XDRF                      1205 XDRF                   4200 NULL        NULL      2017-01-09 17:26:52.759 NULL
+        100                      1404 LATIBEX                                                                 1001      NULL XLAT                      1205 XLAT                   5040 NULL        NULL      2017-01-09 17:26:52.761 NULL
+        100                      1405 BOLSA DE MADRID                                                         1000      1004 XMAD                      1205 XMAD                   5190 NULL        NULL      2017-01-09 17:26:52.762 NULL
+        100                      1406 MERCADO CONTINUO ESPANOL                                                1000      1004 XMCE                      1205 XMCE                   5260 NULL        NULL      2017-01-09 17:26:52.763 NULL
+        100                      1407 MEFF RENTA FIJA                                                         1000      1004 XMEF                      1205 XMEF                   5290 NULL        NULL      2017-01-09 17:26:52.764 NULL
+        100                      1408 MEFF RENTA VARIABLE                                                     1000      1004 XMRV                      1205 XMRV                   5440 NULL        NULL      2017-01-09 17:26:52.765 NULL
+        100                      1409 SISTEMA ESPANOL DE NEGOCIACION DE ACTIVOS FINANCIEROS                   1001      NULL XNAF                      1205 XNAF                   5500 NULL        NULL      2017-01-09 17:26:52.766 NULL
+        100                      1410 MERCADO DE FUTUROS DE ACEITE DE OLIVA, S.A.                             1000      1004 XSRM                      1205 XSRM                   6410 NULL        NULL      2017-01-09 17:26:52.768 NULL
+        100                      1411 BOLSA DE VALENCIA                                                       1000      1004 XVAL                      1205 XVAL                   6800 NULL        NULL      2017-01-09 17:26:52.768 NULL
+        100                      1412 COLOMBO STOCK EXCHANGE                                                  1001      NULL XCOL                      1206 XCOL                   4050 NULL        NULL      2017-01-09 17:26:52.769 NULL
+        100                      1413 KHARTOUM STOCK EXCHANGE                                                 1001      NULL XKHA                      1207 XKHA                   4940 NULL        NULL      2017-01-09 17:26:52.77  NULL
+        100                      1414 SWAZILAND STOCK EXCHANGE                                                1001      NULL XSWA                      1210 XSWA                   6480 NULL        NULL      2017-01-09 17:26:52.771 NULL
+        100                      1415 BURGUNDY NORDIC MTF                                                     1001      NULL BURG                      1211 BURG                    480 NULL        NULL      2017-01-09 17:26:52.774 NULL
+        100                      1416 BURGUNDY REGULATED MARKET                                               1001      NULL BURM                      1211 BURM                    490 NULL        NULL      2017-01-09 17:26:52.775 NULL
+        100                      1417 FIRST NORTH STOCKHOLM                                                   1001      NULL FNSE                      1211 FNSE                   1230 NULL        NULL      2017-01-09 17:26:52.776 NULL
+        100                      1418 NASDAQ OMX DERIVATIVES MARKETS                                          1001      NULL NASN                      1211 NASN                   2240 NULL        NULL      2017-01-09 17:26:52.777 NULL
+        100                      1419 NORDIC MTF                                                              1001      NULL NMTF                      1211 NMTF                   2310 NULL        NULL      2017-01-09 17:26:52.778 NULL
+        100                      1420 NORDIC DERIVATIVES EXCHANGE                                             1001      NULL XNDX                      1211 XNDX                   5580 NULL        NULL      2017-01-09 17:26:52.779 NULL
+        100                      1421 NORDIC GROWTH MARKET                                                    1000      1011 XNGM                      1211 XNGM                   5620 NULL        NULL      2017-01-09 17:26:52.78  NULL
+        100                      1422 NORDIC MTF REPORTING                                                    1001      NULL XNMR                      1211 XNMR                   5680 NULL        NULL      2017-01-09 17:26:52.781 NULL
+        100                      1423 OMX OTC PUBLICATION VENUE                                               1001      NULL XOPV                      1211 XOPV                   5810 NULL        NULL      2017-01-09 17:26:52.783 NULL
+        100                      1424 AKTIETORGET                                                             1001      NULL XSAT                      1211 XSAT                   6200 NULL        NULL      2017-01-09 17:26:52.784 NULL
+        100                      1425 NASDAQ OMX NORDIC                                                       1000      1011 XSTO                      1211 XSTO                   6450 NULL        NULL      2017-01-09 17:26:52.785 NULL
+        100                      1426 BERNE STOCK EXCHANGE                                                    1001      NULL XBRN                      1212 XBRN                   3720 NULL        NULL      2017-01-09 17:26:52.786 NULL
+        100                      1427 SCOACH SWITZERLAND                                                      1001      NULL XQMH                      1212 XQMH                   6040 NULL        NULL      2017-01-09 17:26:52.787 NULL
+        100                      1428 SWISS EXCHANGE                                                          1001      NULL XSWX                      1212 XSWX                   6500 NULL        NULL      2017-01-09 17:26:52.789 NULL
+        100                      1429 SIX SWISS EXCHANGE AG                                                   1001      NULL XVTX                      1212 XVTX                   6830 NULL        NULL      2017-01-09 17:26:52.79  NULL
+        100                      1430 DAMASCUS SECURITIES EXCHANGE                                            1001      NULL XDSE                      1213 XDSE                   4210 NULL        NULL      2017-01-09 17:26:52.791 NULL
+        100                      1431 GRETAI SECURITIES MARKET                                                1001      NULL ROCO                      1214 ROCO                   2640 NULL        NULL      2017-01-09 17:26:52.792 NULL
+        100                      1432 TAIWAN FUTURES EXCHANGE                                                 1001      NULL XTAF                      1214 XTAF                   6520 NULL        NULL      2017-01-09 17:26:52.793 NULL
+        100                      1433 TAIWAN STOCK EXCHANGE                                                   1001      NULL XTAI                      1214 XTAI                   6530 NULL        NULL      2017-01-09 17:26:52.909 NULL
+        100                      1434 DAR ES  SALAAM STOCK EXCHANGE                                           1001      NULL XDAR                      1216 XDAR                   4120 NULL        NULL      2017-01-09 17:26:52.925 NULL
+        100                      1435 AGRICULTURAL FUTURES EXCHANGE OF THAILAND                               1001      NULL AFET                      1217 AFET                     20 NULL        NULL      2017-01-09 17:26:53.161 NULL
+        100                      1436 BOND ELECTRONIC EXCHANGE                                                1001      NULL BEEX                      1217 BEEX                    250 NULL        NULL      2017-01-09 17:26:53.165 NULL
+        100                      1437 THAILAND FUTURES EXCHANGE                                               1001      NULL TFEX                      1217 TFEX                   2940 NULL        NULL      2017-01-09 17:26:54.328 NULL
+        100                      1438 STOCK EXCHANGE OF THAILAND - FOREIGN BOARD                              1001      NULL XBKF                      1217 XBKF                   3580 NULL        NULL      2017-01-09 17:26:54.609 NULL
+        100                      1439 STOCK EXCHANGE OF THAILAND                                              1001      NULL XBKK                      1217 XBKK                   3590 NULL        NULL      2017-01-09 17:26:54.822 NULL
+        100                      1440 NYSE EURONEXT - ALTERNEXT AMSTERDAM                                     1001      NULL ALXA                      1154 ALXA                     40 NULL        NULL      2017-01-09 17:26:54.871 NULL
+        100                      1441 MTS AMSTERDAM N.V.                                                      1001      NULL AMTS                      1154 AMTS                     70 NULL        NULL      2017-01-09 17:26:54.875 NULL
+        100                      1442 CLIMEX                                                                  1001      NULL CLMX                      1154 CLMX                    710 NULL        NULL      2017-01-09 17:26:54.877 NULL
+        100                      1443 EUROPEAN CLIMATE EXCHANGE                                               1001      NULL ECXE                      1154 ECXE                    890 NULL        NULL      2017-01-09 17:26:54.88  NULL
+        100                      1444 EUROPEAN ENERGY DERIVATIVES EXCHANGE N.V.                               1000      1026 NDEX                      1154 NDEX                   2270 NULL        NULL      2017-01-09 17:26:54.882 NULL
+        100                      1445 APX POWER NL                                                            1001      NULL NLPX                      1154 NLPX                   2290 NULL        NULL      2017-01-09 17:26:54.884 NULL
+        100                      1446 NYSE EURONEXT - TRADED BUT NOT LISTED AMSTERDAM                         1001      NULL TNLA                      1154 TNLA                   3000 NULL        NULL      2017-01-09 17:26:54.886 NULL
+        100                      1447 TOM, THE ORDER MACHINE                                                  1001      NULL TOMX                      1154 TOMX                   3020 NULL        NULL      2017-01-09 17:26:54.888 NULL
+        100                      1448 NYSE EURONEXT - EURONEXT AMSTERDAM                                      1000      1026 XAMS                      1154 XAMS                   3320 NULL        NULL      2017-01-09 17:26:54.891 NULL
+        100                      1449 EURONEXT COM, COMMODITIES FUTURES AND OPTIONS                           1000      1026 XEUC                      1154 XEUC                   4390 NULL        NULL      2017-01-09 17:26:54.893 NULL
+        100                      1450 EURONEXT EQF, EQUITIES AND INDICES DERIVATIVES                          1000      1026 XEUE                      1154 XEUE                   4400 NULL        NULL      2017-01-09 17:26:54.895 NULL
+        100                      1451 EURONEXT IRF, INTEREST RATE FUTURE AND OPTIONS                          1000      1026 XEUI                      1154 XEUI                   4410 NULL        NULL      2017-01-09 17:26:54.896 NULL
+        100                      1452 NYSE ARCA EUROPE                                                        1001      NULL XHFT                      1154 XHFT                   4620 NULL        NULL      2017-01-09 17:26:54.899 NULL
+        100                      1453 TRINIDAD AND TOBAGO STOCK EXCHANGE                                      1001      NULL XTRN                      1222 XTRN                   6670 NULL        NULL      2017-01-09 17:26:54.9   NULL
+        100                      1454 BOURSE DE TUNIS                                                         1001      NULL XTUN                      1223 XTUN                   6720 NULL        NULL      2017-01-09 17:26:54.902 NULL
+        100                      1455 ISTANBUL GOLD EXCHANGE                                                  1001      NULL XIAB                      1224 XIAB                   4660 NULL        NULL      2017-01-09 17:26:54.904 NULL
+        100                      1456 ISTANBUL STOCK EXCHANGE                                                 1001      NULL XIST                      1224 XIST                   4810 NULL        NULL      2017-01-09 17:26:54.905 NULL
+        100                      1457 TURKISH DERIVATIVES EXCHANGE                                            1001      NULL XTUR                      1224 XTUR                   6730 NULL        NULL      2017-01-09 17:26:54.908 NULL
+        100                      1458 UGANDA SECURITIES EXCHANGE                                              1001      NULL XUGA                      1228 XUGA                   6760 NULL        NULL      2017-01-09 17:26:54.909 NULL
+        100                      1459 EAST EUROPEAN STOCK EXCHANGE                                            1001      NULL EESE                      1229 EESE                    920 NULL        NULL      2017-01-09 17:26:54.911 NULL
+        100                      1460 PFTS STOCK EXCHANGE                                                     1001      NULL PFTS                      1229 PFTS                   2510 NULL        NULL      2017-01-09 17:26:54.913 NULL
+        100                      1461 STOCK EXCHANGE PERSPECTIVA                                              1001      NULL SEPE                      1229 SEPE                   2760 NULL        NULL      2017-01-09 17:26:54.914 NULL
+        100                      1462 UKRANIAN EXCHANGE                                                       1001      NULL UKEX                      1229 UKEX                   3110 NULL        NULL      2017-01-09 17:26:54.924 NULL
+        100                      1463 JOINT-STOCK COMPANY "STOCK EXCHANGE INNEX"                              1001      NULL XDFB                      1229 XDFB                   4150 NULL        NULL      2017-01-09 17:26:54.932 NULL
+        100                      1464 KHARKOV COMMODITY EXCHANGE                                              1001      NULL XKHR                      1229 XKHR                   4950 NULL        NULL      2017-01-09 17:26:55.06  NULL
+        100                      1465 KIEV UNIVERSAL EXCHANGE                                                 1001      NULL XKIE                      1229 XKIE                   4960 NULL        NULL      2017-01-09 17:26:55.069 NULL
+        100                      1466 KIEV INTERNATIONAL STOCK EXCHANGE                                       1001      NULL XKIS                      1229 XKIS                   4970 NULL        NULL      2017-01-09 17:26:55.071 NULL
+        100                      1467 ODESSA COMMODITY EXCHANGE                                               1001      NULL XODE                      1229 XODE                   5800 NULL        NULL      2017-01-09 17:26:55.073 NULL
+        100                      1468 PRIDNEPROVSK COMMODITY EXCHANGE                                         1001      NULL XPRI                      1229 XPRI                   6010 NULL        NULL      2017-01-09 17:26:55.074 NULL
+        100                      1469 UKRAINIAN STOCK EXCHANGE                                                1001      NULL XUAX                      1229 XUAX                   6740 NULL        NULL      2017-01-09 17:26:55.075 NULL
+        100                      1470 UKRAINIAN UNIVERSAL COMMODITY EXCHANGE                                  1001      NULL XUKR                      1229 XUKR                   6770 NULL        NULL      2017-01-09 17:26:55.076 NULL
+        100                      1471 DUBAI GOLD & COMMODITIES EXCHANGE DMCC                                  1001      NULL DGCX                      1230 DGCX                    790 NULL        NULL      2017-01-09 17:26:55.077 NULL
+        100                      1472 NASDAQ DUBAI                                                            1001      NULL DIFX                      1230 DIFX                    800 NULL        NULL      2017-01-09 17:26:55.079 NULL
+        100                      1473 DUBAI MERCANTILE EXCHANGE                                               1001      NULL DUMX                      1230 DUMX                    830 NULL        NULL      2017-01-09 17:26:55.079 NULL
+        100                      1474 ABU DHABI SECURITIES MARKET                                             1001      NULL XADS                      1230 XADS                   3260 NULL        NULL      2017-01-09 17:26:55.08  NULL
+        100                      1475 DUBAI FINANCIAL MARKET                                                  1001      NULL XDFM                      1230 XDFM                   4160 NULL        NULL      2017-01-09 17:26:55.081 NULL
+        100                      1476 BAIKAL                                                                  1001      NULL BAIK                      1231 BAIK                    150 NULL        NULL      2017-01-09 17:26:55.083 NULL
+        100                      1477 THE BALTIC EXCHANGE                                                     1001      NULL BALT                      1231 BALT                    160 NULL        NULL      2017-01-09 17:26:55.084 NULL
+        100                      1478 BATS EUROPE                                                             1001      NULL BATE                      1231 BATE                    190 NULL        NULL      2017-01-09 17:26:55.098 NULL
+        100                      1479 BGC BROKERS LP                                                          1001      NULL BGCI                      1231 BGCI                    300 NULL        NULL      2017-01-09 17:26:55.1   NULL
+        100                      1480 BLOCKCROSS                                                              1001      NULL BLKX                      1231 BLKX                    320 NULL        NULL      2017-01-09 17:26:55.122 NULL
+        100                      1481 BLINK                                                                   1001      NULL BLNK                      1231 BLNK                    330 NULL        NULL      2017-01-09 17:26:55.124 NULL
+        100                      1482 BLOCKMATCH                                                              1001      NULL BLOX                      1231 BLOX                    340 NULL        NULL      2017-01-09 17:26:55.304 NULL
+        100                      1483 MARKIT BOAT                                                             1001      NULL BOAT                      1231 BOAT                    410 NULL        NULL      2017-01-09 17:26:55.306 NULL
+        100                      1484 BONDSCAPE                                                               1001      NULL BOSC                      1231 BOSC                    430 NULL        NULL      2017-01-09 17:26:55.308 NULL
+        100                      1485 ICAP ELECTRONIC BROKING (EUROPE)                                        1001      NULL BTEE                      1231 BTEE                    470 NULL        NULL      2017-01-09 17:26:55.31  NULL
+        100                      1486 THE CAZENOVE MTF                                                        1001      NULL CAZE                      1231 CAZE                    560 NULL        NULL      2017-01-09 17:26:55.312 NULL
+        100                      1487 CANTORCO2E.COM LIMITED                                                  1001      NULL CCO2                      1231 CCO2                    610 NULL        NULL      2017-01-09 17:26:55.314 NULL
+        100                      1488 CHI-X EUROPE LIMITED.                                                   1001      NULL CHIX                      1231 CHIX                    680 NULL        NULL      2017-01-09 17:26:55.316 NULL
+        100                      1489 CHI-X EUROPE LIMITED - CHI-CLEAR                                        1001      NULL CHIY                      1231 CHIY                    690 NULL        NULL      2017-01-09 17:26:55.319 NULL
+        100                      1490 EUROCREDIT MTS                                                          1001      NULL CMTS                      1231 CMTS                    720 NULL        NULL      2017-01-09 17:26:55.321 NULL
+        100                      1491 COREDEAL MTS                                                            1001      NULL CRDL                      1231 CRDL                    730 NULL        NULL      2017-01-09 17:26:55.323 NULL
+        100                      1492 CREDITEX REALTIME                                                       1001      NULL CXRT                      1231 CXRT                    750 NULL        NULL      2017-01-09 17:26:55.324 NULL
+        100                      1493 EUROMTS                                                                 1001      NULL EMTS                      1231 EMTS                    960 NULL        NULL      2017-01-09 17:26:55.325 NULL
+        100                      1494 CANTOR SPREADFAIR                                                       1001      NULL FAIR                      1231 FAIR                   1100 NULL        NULL      2017-01-09 17:26:55.329 NULL
+        100                      1495 GEMMA (GILT EDGED MARKET MAKERSNULLASSOCIATION)                         1001      NULL GEMX                      1231 GEMX                   1290 NULL        NULL      2017-01-09 17:26:55.33  NULL
+        100                      1496 GFI GROUP                                                               1001      NULL GFIA                      1231 GFIA                   1300 NULL        NULL      2017-01-09 17:26:55.332 NULL
+        100                      1497 GFI CREDITMATCH                                                         1001      NULL GFIC                      1231 GFIC                   1310 NULL        NULL      2017-01-09 17:26:55.334 NULL
+        100                      1498 GFI FOREXMATCH                                                          1001      NULL GFIF                      1231 GFIF                   1320 NULL        NULL      2017-01-09 17:26:55.336 NULL
+        100                      1499 GFI MARKETMATCH                                                         1001      NULL GFIM                      1231 GFIM                   1330 NULL        NULL      2017-01-09 17:26:55.339 NULL
