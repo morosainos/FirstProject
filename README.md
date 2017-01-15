@@ -1,3 +1,16 @@
+file:///D:/DSRO_FILE/360 Master File Specification - DSR Hub Technical Documents - Draft Space - Confluence.html
+Figure 16 – Fund Monitoring: Security Subscription Example
+Organization Monitoring (OM)
+The organization monitoring product provides data on subscribed organizations, its direct parent, and ultimate parent. The data elements received for the subscribed record is based on the consumers' data element specification for the organization monitoring product defined in the contract. The consumer will receive the direct parent control relationship for the organization. These records are shell records with only the following data attributes.
+Hub IdKINS
+Legal name
+Physical Country
+If the parent and/or ultimate parent also happen to be enrolled into a different product, the full record containing subscribed data elements is supplied (subscription supersedes shell record). 
+Additionally, this product includes joint venture (exactly 50/50) relationships if the ultimate parent of the family tree is the child in a joint venture. The parents in the joint venture are provided in the consumer's master file as an auto-enrolled shell record. 
+
+
+
+
 # html
 var app = angular.module('myApp', []);
 app.controller('myCtrl', function ($scope, $http) {
