@@ -8,6 +8,7 @@ Physical Country
 If the parent and/or ultimate parent also happen to be enrolled into a different product, the full record containing subscribed data elements is supplied (subscription supersedes shell record). 
 Additionally, this product includes joint venture (exactly 50/50) relationships if the ultimate parent of the family tree is the child in a joint venture. The parents in the joint venture are provided in the consumer's master file as an auto-enrolled shell record. 
 
+https://mail.kingland.com/owa/#
 
 Join me now in my Personal Room.   
   
