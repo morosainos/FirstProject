@@ -1,30 +1,3 @@
-file:///D:/DSRO_FILE/360 Master File Specification - DSR Hub Technical Documents - Draft Space - Confluence.html
-Figure 16 – Fund Monitoring: Security Subscription Example
-Organization Monitoring (OM)
-The organization monitoring product provides data on subscribed organizations, its direct parent, and ultimate parent. The data elements received for the subscribed record is based on the consumers' data element specification for the organization monitoring product defined in the contract. The consumer will receive the direct parent control relationship for the organization. These records are shell records with only the following data attributes.
-Hub IdKINS
-Legal name
-Physical Country
-If the parent and/or ultimate parent also happen to be enrolled into a different product, the full record containing subscribed data elements is supplied (subscription supersedes shell record). 
-Additionally, this product includes joint venture (exactly 50/50) relationships if the ultimate parent of the family tree is the child in a joint venture. The parents in the joint venture are provided in the consumer's master file as an auto-enrolled shell record. 
-
-https://mail.kingland.com/owa/#
-
-Join me now in my Personal Room.   
-  
-Join WebEx meeting   
-https://kingland.webex.com/join/bekle   |  921 327 441     
-  
-Join from a video conferencing system or application  
-Dial bekle@kingland.webex.com  
-For internal <sitename> users, dial <Pilot Number>.  
-If you are the host, you can also enter your host PIN in your video conferencing system or application to start the meeting.   
-  
-Join by phone  
-1-650-479-3208 Call-in toll number (US/Canada)  
-1-877-668-4493 Call-in toll-free number (US/Canada)  
-Access code: 921 327 441  
-
 
 # html
 var app = angular.module('myApp', []);
