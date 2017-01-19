@@ -4,6 +4,8 @@
  Solr http://blog.csdn.net/liuzhenwen/article/details/4060922
  西部世界ost
  https://confluence.kingland.com/#all-updates
+ web ssrvice http://blog.csdn.net/liuzhenwen/article/details/2671394
+ 
 
 
 var app = angular.module('myApp', []);
