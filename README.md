@@ -1,4 +1,5 @@
---Ansible http://www.ansible.com.cn/
+Ansible http://www.ansible.com.cn/
+Solr http://blog.csdn.net/liuzhenwen/article/details/4060922
 
 
 # html
