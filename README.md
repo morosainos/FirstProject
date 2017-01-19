@@ -1,7 +1,11 @@
-Ansible http://www.ansible.com.cn/
-Solr http://blog.csdn.net/liuzhenwen/article/details/4060922
-西部世界ost
-# html
+ # title
+ 
+ Ansible http://www.ansible.com.cn/
+ Solr http://blog.csdn.net/liuzhenwen/article/details/4060922
+ 西部世界ost
+ https://confluence.kingland.com/#all-updates
+
+
 var app = angular.module('myApp', []);
 app.controller('myCtrl', function ($scope, $http) {
     $http.get("test.ask").success(function (response) {
@@ -10,7 +14,6 @@ app.controller('myCtrl', function ($scope, $http) {
 
     });
 });
-
 
 @ResponseBody
     @RequestMapping(value = "test", method = RequestMethod.GET)
