@@ -37,5 +37,3 @@ $http.get(url,{params:{"name": "zhangsan", "age": "18"}}).success(function(data)
 
     });
 
-http://www.html-js.com/article/Front-end-source-code-analysis-original-uirouter-source-code-analysis
-http://www.myexception.cn/javascript/2035214.html
