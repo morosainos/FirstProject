@@ -1,10 +1,4 @@
-Need another step in Sentry to process all requires_sentry=H. Gathers entire tree and calls PersistConsumptionHierarchy. Checks Rel DABPs,
-and ensures all records already exist in consumption. If any record in tree is not in consumption, entire tree is logged as skipped
-and will be tried the next day. Multi-threading this could be tricky if entities can be in more than one tree. Possibly need database enforced
-constraints on consumption relationship table to ensure duplicate relationships don't get added.
 
-1 https://confluence.kingland.com/display/DHTD/Feature+Design+-+Updates+to+relationship+logic+in+Sentry+when+records+are+in+DABPs
-2 https://confluence.kingland.com/display/DHTD/Registry+and+Sentry+Redesign
 continue https://confluence.kingland.com/display/DHTD/360+Master+File+Specification
 
 https://www.bing.com/search?q=java+%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6&qs=AS&pq=java+%E5%8F%8D%E5%B0%84&sk=AS2&sc=8-7&cvid=AD39EC46C3F14E18BE369B399131932D&FORM=CHRDEF&sp=3
