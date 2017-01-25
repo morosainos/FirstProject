@@ -22,4 +22,4 @@ if(selectedValue == "Clear KSC")
 
 loadNAICSRelatedDD()
 
-搜索fakedNAICSCode   loadStateDD()
+搜索fakedNAICSCode   loadStateDD()  Yes/No
