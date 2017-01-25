@@ -1,8 +1,7 @@
 
 continue https://confluence.kingland.com/display/DHTD/360+View+Details+Page
 
-http://www.runoob.com/csharp/csharp-polymorphism.html
-
+http://www.runoob.com/csharp/csharp-delegate.html
 
 WebApplications - CreateCompany  
 <tr>
