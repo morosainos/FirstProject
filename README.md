@@ -1,7 +1,6 @@
 
 continue https://confluence.kingland.com/display/DHTD/Allow+Parent+Child+Merges
 
-https://www.bing.com/search?q=sql+with+as&qs=n&form=QBRE&sp=-1&pq=sql+with+as&sc=8-11&sk=&cvid=C0563AE288724A68976F6FEA44F5AF0E
 
 http://www.jb51.net/article/29162.htm
 
