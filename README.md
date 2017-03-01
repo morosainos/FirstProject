@@ -1,5 +1,5 @@
 
-continue https://confluence.kingland.com/display/DHTD/Allow+Parent+Child+Merges
+continue https://confluence.kingland.com/display/DHTD/Blocking+Data+Volatility
 
 168
 
