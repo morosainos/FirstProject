@@ -1,5 +1,5 @@
 
-continue https://confluence.kingland.com/display/DHTD/Corporate+Action+Event+Tracking+and+Reporting0
+continue https://confluence.kingland.com/display/DHTD/NTRS+Alternate+Process
 
 193
 
