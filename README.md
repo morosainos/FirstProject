@@ -1,6 +1,6 @@
 
 
-continue https://confluence.kingland.com/display/DHTD/Publisher
+continue https://confluence.kingland.com/display/DHTD/Request+to+Enrollment+Turnaround+Reduction
 
 225
 
