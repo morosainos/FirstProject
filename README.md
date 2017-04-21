@@ -1,6 +1,4 @@
 
-alignments
-
 continue https://confluence.kingland.com/display/DHTD/Request+to+Enrollment+Turnaround+Reduction
 DEV run courier
 https://confluence.kingland.com/display/TRAC/CourierRunBook
