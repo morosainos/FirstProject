@@ -1,0 +1,397 @@
+﻿360 Master File ：The export files produced by KSC for consumption by the consumer.
+Organization ：An organization is an entity that is being monitored by the 360 Data Product.公司
+Security ：A security is a financial instrument that is being monitored by the 360 Data Product.股票、基金
+Joint Venture ：An organization that is equally INFLUENCE (50/50) by two organizations.
+Shell record ：Records that are delivered with minimal identification information.
+DSR :Data Science & Research
+RD requirement document ：需求文档
+SID 1000 : source ID =1000 Clarity上添加的数据
+GMF ：Global Master File
+多个实体Record 通过唯一的HUBID指向同一个ORG
+客户发送什么请求，就要返回什么状态(带KINS的SUB一定要enroll 不带KINS的可以enroll也可以pending)
+---------------------------------------------
+一、 MDM HUB
+---------------------------------------------
+Clean Build
+WebSphere Application Server右击 Run Administraton Console  wasadmin a1b2c3d4
+Applications - Application Types - Business-level applications - MDM-operational-server-EBA-E001 - com.ibm.mdm.hub.server.app-E001_0001.eba - Extensions for this composition unit -
+KSC.cba
+
+WAS Admin Console WAS Version OS Port Web URL                          Admin User Password
+DEV服务器              8.5    AIX 9043 https://pad0021:9043/ibm/console wasadmin   a1b2c3d4
+
+C:\development\ReleaseEngineering\SolutionConfig\Hub\ProductDefinitions\db2 存放用户配置的文件sql
+
+[[HubServicesProxy]]
+Batch和MDM通信的核心
+[[../com...data.rmi.xsl]]中的xsl(定义Transaction name)
+[[../com...data.rmi]] getStylesheetName()方法
+MDMCommandTemplate
+MDMCommandTemplate()
+InputStream styleStream = getClass().getResourceAsStream("xsl/" + getStylesheetName());
+Batch 中通过调用callMDM()方法和MDM联系   e.g.Sentry中loadProcessData()中的psm.callMDM() 
+
+[[KinglandMasterFileRegister]]
+       |
+com....compositeTxn
+       |
+SubscribeRecordBaseCompositeTxnBP 被继承    registry 相关动作
+               |                    |                           |
+SubscribeRecordCompositeTxnBP UnsubscribeRecordCompositeTxnBP ResubscribeRecordCompositeTxnBP
+
+
+       |
+KSCPromoteBaseCompositeTxnBP      被继承    sentry 相关动作  先处理D的DABP 后处理H的DABP
+                      |                                              |
+KSCPromoteHierarchyToConsumptionCompositeTxnBP  KSCPromoteSubscriptionToConsumptionCompositeTxnBP 
+
+execute()方法为入口
+
+Promote 调用 PersistConsumptionOrg/Security 执行更新操作的调用
+
+---------------
+KSCPromoteHierarchyToConsumptionCompositeTxnBP
+1.ORG
+processHierarchy()方法
+740 将所有要更新的consumptionOrg依次交由 PersistConsumptionOrgCompositeTxnBp 的 persistConsumptionOrg()
+persistConsumptionOrg() 186 调用 addUpdateKSCConsumptionOrg() 方法
+addUpdateKSCConsumptionOrg() 222 调用 KinglandConsumptionOrgComponent 的 updateConsumptionOrg() 方法
+updateConsumptionOrg() 4288 最底层 调用transaction进行数据库插入
+
+759 将所有要更新的consumptionSec依次交由persistConsumptionSecComposite.......
+
+2.SEC      !!!!!! 根据用户配置https://confluence.kingland.com/display/DHTD/DSR+Hub+Customer+Configurations 有些字段更新并不会反映在consumption表中!!!!
+用consumer id=20000(kingland) 测试用户
+processSecurityHierarchy()方法
+1098 将要更新的consumptionSec交由 PersistConsumptionSecurityCompositeTxnBp 的 persistConsumptionSec()
+persistConsumptionSec() 1588 调用 addUpdateKSCConsumptionSec() 方法
+addUpdateKSCConsumptionSec() 调用 DWLTxnBP execute()方法
+execute() 判断调用三种process方法
+
+KSCPromoteSubscriptionToConsumptionCompositeTxnBP
+processSubscription()方法
+230 调用KSCPromoteBaseCompositeTxnBP handleSingleSub() 方法
+handleSingleSub() 3692 调用 filterDataByProductDefinition()方法
+filterDataByProductDefinition() 1900 判断执行 convertWorkOrgToConsumptionOrg() 或 convertWorkOrgToConsumptionSec()
+convertWorkOrgToConsumptionOrg()进行xml拼接
+---------------
+
+[[MDMSharedResources]]
+sql 中存放了数据库flyway版本迁移的文件
+
+[[../resources/sampleRequest]]
+存放对应Txn(transaction)的请求示例   和[HubServicesProxy/com...data.rmi.xsl]中的xsl(定义Transaction name)对应
+
+******KinglandMasterFileRegister 
+KinglandMasterFileRegister service is a container for placing data that is subscribed and ready to be moved to consumption.
+Used in the batch out reference architecture pattern when there is a desire to place data in batch into another data model and provide transactions for subscribing this data.
+
+Basically, it contains transactions that are responsible for subscribing organizations and handling businesses of organizations subscription. 
+When registry and sentry are run, KinglandMasterFileRegister will be triggered and processes requests from batch to MDM.
+******
+
+通过module.mdmxmi建模，增删改查和History表都可以自动生成 @generated 注释的方法不可手动更改，每次生成后会将手动更改覆盖。
+一旦Org有变化，所有子表(orgname,orgaddress...)的History表都会变化，因此不是每一次生成都是有意义的，可能是因为别的属性更新而导致的该表history添加。
+生成的sql中的TRIGGERS会在表结构和数据更改(增删改)时自动触发history表的更新
+*KSCORG extends了MDM中原有的表Organization，set_up中在原有基础上添加字段。KSCSecurity则是新建表。
+
+---------
+Metrics
+---------
+The metrics process used to track some additional metrics(such as application start/end time, application name, metrics name and metrics value etc.) information in Registry log, Sentry log and subscriptionMaster.sh script. 
+Basically, the metrics process will run after each application(such as Registry, Sentry, Verification etc.) call this jar to deal with the process, The metrics shall the important information recorded in the application's log or shell, according to the different demand export excel report or added to the database.
+performance的评估 效率时间的计量
+*KinglandMetricsComponent: Business component class for handling KinglandMetrics related transactions and inquiries
+*KinglandMetricsFinderImpl: Controller class to handle inquiry requests.
+*KinglandMetricsTxnBean: Controller implementation for all persistent KinglandMetrics services.
+*KSCPersistMetricsCompositeTxnBP: Business process to persist metrics composite informations (Metrics error application information,Metrics scan information.etc) into database.
+*KSCPersistSubscriptionMetricsCompositeTxnBP: Business process to persist subscripton metrics composite informations (Subscription metrics details) into database.
+
+---------------------------------------------
+二、 BatchUtilities  和MDM通过XML通信
+---------------------------------------------
+代码要最新的，记得Gradle-Refresh Dependencies
+打开一个类，右键选择Team-show in history 可以直接查看该文件被改过的历史记录/在文件夹中找到对应文件，选择TortoiseGit-Show log 也可以查看历史/SourceTree也可以External Diff(Ctrl+D) 查看文件
+
+---------
+Courier
+---------
+Courier is a batch application that looks for records that have been updated in the staging data stores and moves them to the master data store. 
+Courier takes care of the normalization activities that need to occur since the staging store is a denormalized store and the master store is a normalized store.
+
+*Courier.java - Requests KSCStageOrg and KSCStageSecurity objects from the 360 Data Enterprise Hub and builds them into requests suitable for KSCPersistParty and KSCPersistSecurity, respectively. In this way, it acts as a data mover from the stage tables to the master tables.
+*PerformanceTracker.java - Provides performance statistics for Courier every N seconds.
+*Updater.java - Updates an entity in the database by creating the request xml then send it to MDM.
+*ProcessingStatusUpdater.java - Updates the staging status of a record.
+*BatchProcessInputGenerator.java - Super-class for all input generators. It supports an abstract method generateXML which used to generate XML file by child classes. And also supports common method such as printIfValid(), printWithBlanking(), printConditionally(), printEmptyTag(), checkIsValid(), getProperty(), transformPropertyName(), writeToFile().
+*StageOrgInputGenerator.java - Builds the XML request for submitting a StageOrganization to the Work store.
+*StageSecurityInputGenerator.java - - Builds the XML request for submitting a StageSecuritie to the Work store.
+*ServiceConnector.java - Provides a framework for submitting requests to MDM and getting responses.
+*Retriever.java - Calls MDM to retrieve stage records and builds attribute maps from the results.
+*Submitter.java - Submits a batch of records to the ServiceConnector. 改变is_changed的状态
+*NoParentStageIdFoundException.java - Custom exception used for indicating a record's parent could not be found.
+*Constants.java - Contains string constants for XML generation.
+*FlatEntity.java - Represents a Stage Org/Security by maintaining a map of attribute name.
+*IApplication.java - Interface for applications that can be started and shut down.
+*ShutdownListener.java - Listens for the shutdown signal to shut down an application gracefully.
+
+1. 进行stage表中向work表的字段拆分，只有IS_CHANGED=1002的数据才会执行。
+   Name Address Industry Identifier Contact method Hierarchy 
+
+2. 主要数据来源:HUB/GMF
+
+3. Couirer的结果可以通过查看stage表的状态查看 三种结果 1.成功 2.失败 3.网络连接
+
+---------
+Registry    https://confluence.kingland.com/display/DHTD/Registry+Requirements+for+Organizations+and+Securities
+			https://confluence.kingland.com/display/DHTD/Subscription+Jobs+Definitions     SUB的整体流程   runSubscription.sh -eris 10000   enroller-registry-integrity-sentry
+---------
+The Registry process analyzes the customer subscription file to determine which records a customer wants to subscribe to and update the subscription table.
+No.1 Data Quality Checks
+No.2 Unsubscribe Requests
+No.3 Requests without Hub ID and Rematch Requests
+No.4 Process Requests with Hub ID
+No.5 Check Existing Subscriptions
+
+RunRegistry 传入两种参数org|sec 代表Organization 和 Security两种数据 
+1. 读取用户请求文件并判断状态
+
+2. 先进行UNSUB的判断，所以当一个请求同时SUB/UNSUB一条数据，仍然SUB
+
+3. RESUB 即使本次用户请求没有KINS 但是之前SUB过 依然要更新该数据
+
+4. 插入subscription表
+
+5. 多线程按照ACTION (sub unsub resub)分组  https://confluence.kingland.com/display/DHTD/Component+Design+-+Multi-thread+Registry
+
+**
+registry设is_subscribed_to  sentry 会设 KSCSUBSCRIPTSTATUS_TP_CD   如果之前是AE状态 SUB之后经过sentry处理会变成E
+如果因为一些原因sentry没有处理  状态会保持在AE,is_subscribed_to=1
+**
+---------
+Sentry	   https://confluence.kingland.com/display/DHTD/Sentry+Requirements+2.0
+---------
+Sentry get records from KSCCONSUMERSUBSCRIPTION which store subscription information of customers,based on these records 
+KSCPromoteSubscriptionToConsumptionCompositeTxnBP and KSCPromoteHierarchyToConsumptionCompositeTxnBP get attributes and relationships from work table and promote them into consumption table, that's what we send to our customers.
+
+RunSentry  两个都是自定义给真正的Registry和Sentry传参数的测试类，写了一些死数据
+通过Require_Sentry 将consumersubscription表中的数据加到consumption表中
+1. 将work表中的数据放入Consumption表中 更新consumption相关表
+
+2. DABP判断逻辑  *如果是'H'的DABP 可以处理data的更新,不处理unsub和AutoUnsub
+
+3. 不处理没有RecordId的
+
+4. 遵循TreeRule进行Hierarchy相关操作的判断 [frequency+requireSentry]  通过SubscribeRecordConstants.REQUIRES_SENTRY_XX进行数据执行方式的判断(Registry跑完后设置状态 sub.getRequiresSentry())
+R relink 同一个请求sub不同的hub data 
+M merge 
+B both data和Hierarchy的属性都要处理
+H hierarchy 只处理relationship的属性
+D data 只处理data相关的属性
+N 已经处理过不需要再处理
+C circle a-b-c-a 要特殊处理
+U unsub
+
+*M R 特殊 只要处于一种DABP D和H的属性都会被block
+
+5. 多线程按照GUP分组(GUP 指relationship最上面的parent)
+
+6. KSCPromoteSubscriptionToConsumptionCompositeTxnBP  处理 D B
+   KSCPromoteHierarchyToConsumptionCompositeTxnBP     处理 H M R
+
+**shell型数据 被autoEnrolled的parent的属性只会有部分被订阅 即shell record**
+**capstone  parent是自己且是control关系的org**
+
+Sentry.java
+
+runSentry()  ----  processDataChanged() processRelChanged()  getEnrolledSubscriptionsForFrequency() 中从kscconsumersubscription中以KSCRECORDTYPE_TP_CD降序(大到小)筛选
+SELECT ID ID, RECORD_GUP_ID GUP_ID, RECORD_ID, KSCRECORDTYPE_TP_CD RECORD_TP_CD, TOP_GUP_ID FROM KSCCONSUMERSUBSCRIPTION WHERE (ENTITY_ACTIVE_IND = 1 OR ENTITY_ACTIVE_IND IS NULL) 
+AND KSCSUBSCRIPTFREQ_TP_CD = 1000 AND RECORD_ID IS NOT NULL AND REQUIRES_SENTRY = 'H'  AND KSCSUBSCRIPTSTATUS_TP_CD NOT IN ( 1005 , 1006 )  
+AND CONSUMER_ID IN (10000) AND KSCRECORDTYPE_TP_CD = 1001 ORDER BY KSCSUBSCRIPTSTATUS_TP_CD desc ;
+
+然后执行SentrySubmmiter的run()方法
+
+---------
+Integrity
+---------
+IntegrityBatchApp  BP scan  hourly/daily
+执行DABP操作需要运行的类
+
+---------
+Enroller
+---------
+处理用户的原始subscription文件，将无效的kins和没有kins的record relink到新的可匹配的kins上
+
+---------
+Verification     https://confluence.kingland.com/display/DHTD/File+Verification
+---------
+校验IntegratorETL
+[scirpts]
+两个.sh脚本和.properties属性
+[/report /scans]
+scans 中的脚本只查找操作条数select count(*)  report 中的脚本是具体的各个属性
+
+xls文件中 sheet Abend Issues需要手动改  NeedsAction为不重要的已存问题，可以不管
+
+***H5  一般出问题都出在同一个tree上 只要将gup改好一般就都好了
+KSCORGBASEFILEVERIF  KSCORGHIERARCHYFILEVERIF  存发给用户文件中的数据，修改后还要改真正存在MDMDB62_Product中的consumption数据   
+Orgbase对应KSCCONSUMPTIONORG  OrgHirarchy对应KSCCONSUMPTIONRELATIONSHIP 
+gup手动更改过关系的话 要把所有子的状态更新，如果子的状态正确，只更新自己
+“
+update kscconsumersubscription set requires_sentry =  case when requires_sentry = 'N' then 'H' when requires_sentry = 'D' then 'B' end , 
+last_update_user = 'MF-3514', last_update_dt = current_timestamp 
+where record_gup_id in (694242541498176791, 771331302267827276, 781133115758629219) and (entity_Active_Ind is null OR entity_Active_Ind <> 0) AND requires_sentry in ('N','D'); 
+”
+---------------------------------------------
+三、 Publish
+---------------------------------------------
+从Consumption表中导出发给用户的文件 ， 通过sql检出consumersubscription和consumptionsubscription状态相同的request， 对于在DABP中的数据，要保持状态和前一天相同(blocked)， 即状态不匹配的要进行逻辑处理。
+.gz 
+360Ready.txt存放生成文件的大小和记录条数  
+Org_registry.txt 所有的订阅记录(用户请求)
+
+
+---------------------------------------------
+FastIndexLoader
+---------------------------------------------
+Clarity插入的数据都带有index  用FastIndexLoader去给Solr创建index
+*Loader: This is the major class of the FastIndexLoader solution. This class implements the entire logic to export the data and to create the indexes in Solr. It contains the main method being executed.In Loader constructor, it grants values to “cont”, “remainingIndependentReaders” and “dataFileReaders”. These global variables will commonly be used in the whole solution. The “cont” variable contains all data files. A data file instance maps to a physical file which is defined in the loadconf-dsro.xml, and stores in the “cont”.
+*LoadConfiguration: This file maps to the loadconf-dsro.xml file. 
+*DataFile: This file maps to the dataFile element of the loadconf-dsro.xml file. Furthermore, it has to own the numeric indexes
+*IndexField: This file maps to the indexField element of the loadconf-dsro.xml file. The dynamicSuffixColumnNumericIndex and compositeColumnNumericIndexes are storing related numeric indexes. The dynamicValueMap stores the values of the dynamicSuffixColumns. For the other fields, refer to loadconf-dsro.xml.
+*WhereCondition: It maps to the whereContion element of the loadconf-dsro.xml file.
+*DataFileReader: It reads a DataFile by going through its lines one by one. There’s a global vairble List<String[]> currentBlock used to store data rows. The currentSortKey(Long) and currentUniqueKey(String) are also very important. These will be used in the major method, advance().
+
+The program starts from the fastIndexLoader.sh script. From this script, it calls the main method in Loader class to start the index creation.
+ It has to be executed twice. The first execution with a '-exp' as well as an xml file name passed in, the Loader class only generates an SQL file. 
+The script takes the rest of the jobs to execute the SQL to export data from database into DEL files. The second execution without '-exp' passed is to tell the Loader class to create Solr indexes based on the data in DEL files. 
+On the second time execution, all other java classes such as DataFileReader, LoadConfiguration etc. are subsequently invoked working together to build data structure based on DEL files  for the index creation.
+
+Solr是一个基于Lucene的Java搜索引擎服务器。
+
+---------------------------------------------
+IntegratorETL
+---------------------------------------------
+Jobs
+
+
+---------------------------------------------
+四、 GMF      DB使用SQL Server
+---------------------------------------------
+右击WebApplications debug 运行服务器 Web.config中存放配置信息  developmentDB user id=zeus password=jupiter7
+右键 Add Watch 监听变量的值
+*联动 leverage 例如：国家选择后要显示对应的省份*
+*FID feed id  即SourceId  GMF的sourceid为2  实际一条数据可能不同source都会插入，此时实际导入work表时会进行优先级的判断，名字优先取哪个SourceId*
+*Change Reason的分组通过RelationshipManager-UserControls-CreateCompanyControl.ascx.cs previewEdit/NewChange() 中的 changeMap.Add()添加的key来完成*
+*Proto 还没有加到work表的数据 GMFID<0  GMFID>0的数据为已经导入work表的数据*
+*stage-work-publish   publish导入到HUB的stage表*
+*Transaction manager.begin() 在执行时正常插入删除,但是DB被锁看不见,一旦执行失败,数据库将会回滚RollBack,数据库结果不变
+
+xxx.aspx相当于页面html 配置  总页面   .ascx相当于子页面
+	   |                                |
+xxx.aspx.cs相当于controller  xxxx.aspx.designer.cs 为自动生成，和.aspx.cs相对应，aspx.cs保存就会生成
+-------------------------
+Data
+-------------------------
+所有对象真正存储的地方
+
+-------------------------
+Business
+-------------------------
+BizObjects  xxCollection手动添加的增删改查方法
+RapTierBase 自动生成的增删改差方法，不能手动更改  DataCollection中存放自动生成的增删改方法  DataChange记录字段的变化，和MDM的history功能相同，但是只记录有意义的字段(基于业务)
+
+-------------------------
+Resources
+-------------------------
+存放通用资源和自定义的asp组件(继承原有的组件)
+
+-------------------------
+Import - Link - Merge   此三步相当于Courier
+-------------------------
+Import 从文件读数据 prime - stage
+Link 进行数据的update和insert
+Merge 进行stage到work表的导入操作
+
+Undupe 将不同FeedId的数据进行Merge
+Unlink 将上面整合的数据进行拆分
+-------------------------
+Protomatter
+-------------------------
+----ProtoGraph   Commit()中的ctc.Insert() 为插入到work表的操作  [Insight中选择accept and commit]
+----ProtoCompany    
+	ProtoCompany(SerializationInfo info,StreamingContext context) : base(info,context)  取数据  SerializationInfo类似于json
+	GetObjectData(SerializationInfo info,StreamingContext context)  存数据
+     
+----ProtoRelationship
+
+-------------------------
+QAScanner
+-------------------------
+依照规则将有缺陷的数据加到WorkQueue，在Insight的Relation Manager中进行人工的修改(DRA)缺陷数据 
+
+-------------------------
+Insight
+-------------------------
+1. 应用程序 C:\development\GMF\Athena\bin\Debug\Insight.exe
+2. 浏览器访问 http://localhost:2001/RelationshipManager/Default.aspx 在端口号声明后输入要访问的项目名称(WebApplications下)
+
+*Insight显示功能必须以IE7为基准(Chrome F12可以在Browser Mode选择IE版本)
+*默认不显示child 要Rotate Tree
+
+Relationship Manager - View Work Items 最下方刷出Work Item - Process - 右击中间左侧的Entity可以创建parent或child
+																   - 点击右侧的Created Entities会在左侧刷新树结构(子在上，可以右击选择Rotate Tree颠倒显示) 在上方可以选择Edit KSC Data编辑
+																   NAICS北美产业分类体系  FYE Financial Year End财务年度结束的日期 
+整个页面为Research2  中间为TreeView 下方为WorkFlow (Resources-KSCWebWorkFlow) /KSCWebWorkflowControl
+RelationshipManager-UserControls-CreateCompanyControl.ascx.cs previewEdit/NewChange() + saveEdit/NewCompany()  loadPreviousValues()  几个初始化方法Page_Load() PageInit() PageRender()
+添加后在Relation Manager最下面select a result : accept and commit 会插入到work表 save current work 仅保存变动 save and return to Q 保存变动并返回work queue后还能看到该数据
+！！不能直接点击X 否则会锁住报错
+																   
+commit之后 在Relationship Admin 中按条件进行查找 选择select 左上方选Examine Relationship 																   
+
+
+
+---------------------------------------------
+五、 GMF2Hub     远程server上的IBM 开发工具
+---------------------------------------------
+
+Jobs中的sql  将publish中的父子关系取出并将subtype为Influence且只有两个父分别为50%的subtype显示为 Joint Venture
+with jv as 
+(Select Distinct  
+     rdChdGMFID as ChdGMFID      
+From _ActiveChainUnique 
+Inner Join _ConsumerSubs_Delta on rdChdGMFID = GMFID 
+Where rdSubType = 'INFLUENCE' and round(100*rdPercent,2) = 50 GROUP BY rdChdGMFID having count(rdParGMFID) =2
+) 
+ 
+Select Distinct  
+     rdChdGMFID as ChdGMFID 
+     , rdParGMFID as ParGMFID 
+     , rdSubType as Subtype 
+     , round(100*rdPercent,2) as rdPercent 
+From _ActiveChainUnique 
+Inner Join _ConsumerSubs_Delta on rdChdGMFID = GMFID 
+Where rdSubType <> 'INFLUENCE' 
+ 
+UNION 
+ 
+Select Distinct  
+     rdChdGMFID as ChdGMFID 
+     , rdParGMFID as ParGMFID 
+     , rdSubType+cast(ROW_NUMBER() over (partition by rdChdGMFID order by rdChdGMFID, rdPercent DESC, rdParGMFID) as varchar(1)) as Subtype 
+     , round(100*rdPercent,2) as rdPercent 
+From _ActiveChainUnique 
+Inner Join _ConsumerSubs_Delta on rdChdGMFID = GMFID 
+Where rdSubType = 'INFLUENCE' and rdChdGMFID not in (select * from jv) 
+ 
+UNION 
+ 
+Select Distinct  
+     rdChdGMFID as ChdGMFID 
+     , rdParGMFID as ParGMFID 
+     , 'Joint Venture' as Subtype 
+     , round(100*rdPercent,2) as rdPercent 
+From _ActiveChainUnique 
+Inner Join _ConsumerSubs_Delta on rdChdGMFID = GMFID 
+Where rdSubType = 'INFLUENCE' and rdChdGMFID in (select * from jv) 
+Order By rdChdGMFID, rdSubType
