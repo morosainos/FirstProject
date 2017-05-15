@@ -21,14 +21,14 @@ http://v2.bootcss.com/base-css.html   table css
   </table>
 </div>   响应式表格
 
-  <div class="form-group has-success has-feedback">
+   <div class="form-group has-success has-feedback">
     <label class="control-label col-sm-3" for="inputSuccess3">Input with success</label>
     <div class="col-sm-9">
       <input type="text" class="form-control" id="inputSuccess3" aria-describedby="inputSuccess3Status">
       <span class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>
       <span id="inputSuccess3Status" class="sr-only">(success)</span>
     </div>
-  </div>    输入后显示对号
+  </div>   输入后显示对号
   
 <p class="bg-primary">...</p>
 <p class="bg-success">...</p>
