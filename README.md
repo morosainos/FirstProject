@@ -32,3 +32,6 @@ http://v2.bootcss.com/base-css.html   table css
 
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.   2333
+
+<!-- Favicon -->
+<link rel="shortcut icon" href="img/favicon.ico" />
