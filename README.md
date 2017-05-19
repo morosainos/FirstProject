@@ -31,3 +31,12 @@ http://v2.bootcss.com/base-css.html   table css
 
 
 https://wenku.baidu.com/view/708d6913cc7931b765ce15f3.html  论文分章节参考
+
+
+adminApp.config(function ($stateProvider, $urlRouterProvider, $controllerProvider) {
+	adminApp.controllerProvider = $controllerProvider;
+  
+angular.module("adminApp").controllerProvider.register('dashboardController', function($scope)
+{
+   console.log("dashboardController");
+});
