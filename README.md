@@ -40,3 +40,5 @@ angular.module("adminApp").controllerProvider.register('dashboardController', fu
 {
    console.log("dashboardController");
 });
+
+http://ify.io/lazy-loading-in-angularjs/
