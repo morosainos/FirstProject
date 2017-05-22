@@ -42,3 +42,15 @@ angular.module("adminApp").controllerProvider.register('dashboardController', fu
 });
 
 http://ify.io/lazy-loading-in-angularjs/
+
+https://en.wikipedia.org/wiki/Comparison_of_JavaScript_charting_frameworks all-chart comparisons
+
+http://blog.csdn.net/czz13902jy/article/details/43339127?locationNum=8  FushionCharts
+http://www.cnblogs.com/jiagoushi/archive/2013/02/04/2892227.html FushionCharts
+http://blog.sina.com.cn/s/blog_4cbdf96c01011u9z.html HighCharts
+http://www.bootcss.com/p/chart.js/docs/  chart.js
+http://www.bootcss.com/p/chart.js/ chart.js
+http://www.ichartjs.com/ ichart
+http://echarts.baidu.com/examples.html echarts
+https://www.amcharts.com/ amcharts
+http://www.jscharts.com/examples js chart
