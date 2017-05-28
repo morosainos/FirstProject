@@ -15,13 +15,6 @@ http://www.cnblogs.com/landeanfen/p/4976838.html  bootstrap table
 http://issues.wenzhixin.net.cn/bootstrap-table/
 http://v2.bootcss.com/base-css.html   table css
 
-  
-<p class="bg-primary">...</p>
-<p class="bg-success">...</p>
-<p class="bg-info">...</p>
-<p class="bg-warning">...</p>
-<p class="bg-danger">...</p>  段落背景色
-
 <input type="text" class="input-medium search-query"> 圆角输入框
 <div class="input-append">
   <input class="span2" id="appendedInputButtons" type="text">
@@ -45,8 +38,7 @@ http://ify.io/lazy-loading-in-angularjs/
 
 https://en.wikipedia.org/wiki/Comparison_of_JavaScript_charting_frameworks all-chart comparisons
 
-http://blog.csdn.net/czz13902jy/article/details/43339127?locationNum=8  FushionCharts
-http://www.cnblogs.com/jiagoushi/archive/2013/02/04/2892227.html FushionCharts
+
 http://blog.sina.com.cn/s/blog_4cbdf96c01011u9z.html HighCharts
 http://www.bootcss.com/p/chart.js/docs/  chart.js
 http://www.bootcss.com/p/chart.js/ chart.js
