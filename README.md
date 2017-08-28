@@ -23,4 +23,4 @@ http://ify.io/lazy-loading-in-angularjs/
 
 https://en.wikipedia.org/wiki/Comparison_of_JavaScript_charting_frameworks all-chart comparisons
 
-https://www.gleif.org/en/lei-data/gleif-concatenated-file/download-the-concatenated-file
+https://jira.kingland.com/browse/ITS-7015
